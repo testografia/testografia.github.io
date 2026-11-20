@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 368 (versione consolidata, 20 novembre 2026)
+    TESTOGRAFIA — versione 369 (versione consolidata, 20 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -809,7 +809,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 368]</div>
+    <div id="version-label">[VERSIONE 369]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -1565,6 +1565,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             modalitaDestra = mode;
             localStorage.setItem('modalita_destra', mode);
             applicaModalitaDestra();
+            segnaPassaggio();
         }
 
         function getTestoAccumulato() {
@@ -1949,6 +1950,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             if (!testoInLettura.noteByPage) testoInLettura.noteByPage = buildNoteMap(testoInLettura.paragrafi || []);
             disegnaLeggio();
             localStorage.setItem('legio_testo_id', t.id);
+            segnaPassaggio();
         }
 
         async function disegnaLeggio() {
@@ -2632,6 +2634,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             testoInLettura = null;
             localStorage.removeItem('legio_testo_id');
             disegnaLeggio();
+            segnaPassaggio();
         }
 
         async function eliminaTesto(idTesto) {
@@ -3329,6 +3332,8 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 }
             }
             disegnaLeggio();
+            // la prima pagina della cronologia: com'era Testografia all'apertura
+            if (!history.state || !history.state.tg) history.replaceState(fotoCronologia(), '');
         }
 
         function formatMB(bytes) { return (bytes / 1048576).toFixed(1).replace('.', ',') + ' MB'; }
@@ -5123,6 +5128,51 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     renderizzaPdfDaUrl(testoInLettura.pdf_url);
                 }
             }, 500);
+        });
+
+        // ---- Il pulsante "indietro" del browser: torna al passo precedente dentro Testografia ----
+        // Ogni passo (un testo aperto o chiuso nel Leggio, Montaggio/Risultato, una finestra aperta) e' una pagina della cronologia.
+        // "Indietro" chiude la finestra aperta, oppure riporta il testo e la vista di prima; finiti i passi, si esce dal sito come sempre.
+        const FINESTRE_CRONOLOGIA = ['modale-archivio', 'modale-lista-montaggi', 'modale-carica', 'modale-biblio', 'modale-promozione', 'modale-nome-montaggio', 'modale-video'];
+        let inCronologia = false, ignoraPopstate = false;
+        function fotoCronologia() { return { tg: 1, testo: testoInLettura ? String(testoInLettura.id) : null, modo: modalitaDestra }; }
+        function segnaPassaggio() {
+            if (inCronologia || !history.state || !history.state.tg) return;
+            const f = fotoCronologia(), st = history.state;
+            if (!st.modale && st.testo === f.testo && st.modo === f.modo) return;
+            if (st.modale) history.replaceState(f, ''); else history.pushState(f, '');
+        }
+        FINESTRE_CRONOLOGIA.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            let aperta = el.style.display === 'flex';
+            new MutationObserver(() => {
+                const ora = el.style.display === 'flex';
+                if (ora === aperta) return;
+                aperta = ora;
+                if (inCronologia || !history.state || !history.state.tg) return;
+                if (ora) history.pushState(Object.assign(fotoCronologia(), { modale: id }), '');
+                else if (history.state.modale === id) { ignoraPopstate = true; history.back(); }
+            }).observe(el, { attributes: true, attributeFilter: ['style'] });
+        });
+        window.addEventListener('popstate', e => {
+            if (ignoraPopstate) { ignoraPopstate = false; return; }
+            const st = e.state;
+            if (!st || !st.tg) return;
+            inCronologia = true;
+            FINESTRE_CRONOLOGIA.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.style.display === 'flex' && id !== st.modale) {
+                    if (id === 'modale-video') chiudiVideo(); else if (id === 'modale-carica') chiudiModale(); else el.style.display = 'none';
+                }
+            });
+            const ora = testoInLettura ? String(testoInLettura.id) : null;
+            if (st.testo !== ora) {
+                if (st.testo && testiDatabase.some(t => String(t.id) === st.testo)) apriTesto(st.testo);
+                else if (!st.testo) chiudiLeggio();
+            }
+            if (st.modo && st.modo !== modalitaDestra) cambiaModalitaDestra(st.modo);
+            setTimeout(() => { inCronologia = false; }, 0);
         });
 
         caricaDatabase();

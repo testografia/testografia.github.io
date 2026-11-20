@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 365 (versione consolidata, 20 novembre 2026)
+    TESTOGRAFIA — versione 367 (versione consolidata, 20 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -587,6 +587,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         }
         
         .usa-testo { font-size: 0.8em; }
+        /* "Che cosa è?": apre il video di presentazione (testografia.mp4 accanto all'app) */
+        .btn-che-cosa { margin-top: 34px; padding: 8px 18px; background: #fff; color: #000; border: 1px solid #000; border-radius: 6px; font-family: var(--font-ui); font-size: 0.8em; font-weight: bold; cursor: pointer; opacity: 0; animation: compariSoft 1.2s ease-out 1.6s forwards; }
+        .btn-che-cosa:hover { background: #000; color: #fff; }
+        @keyframes compariSoft { to { opacity: 1; } }
+        .modale-video { position: relative; width: min(92vw, 1100px); background: #000; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .modale-video video { display: block; width: 100%; height: auto; background: #000; }
+        .modale-video .modale-chiudi { top: 8px; right: 10px; z-index: 2; width: 30px; height: 30px; line-height: 28px; text-align: center; border-radius: 50%; background: #fff; color: #000; font-size: 1.2em; }
 
         @keyframes fadeInSoft {
             0% { opacity: 0; filter: blur(8px); transform: translateY(20px); }
@@ -799,7 +806,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 365]</div>
+    <div id="version-label">[VERSIONE 367]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -923,6 +930,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
                 <input type="text" id="input-nome-montaggio" autocomplete="off">
                 <button onclick="confermaNuovoMontaggio()">Crea</button>
             </div>
+        </div>
+    </div>
+
+    <div class="modale-sfondo" id="modale-video">
+        <div class="modale-video">
+            <span class="modale-chiudi" onclick="chiudiVideo()" aria-label="Chiudi">&times;</span>
+            <video id="video-presentazione" controls playsinline preload="none"></video>
         </div>
     </div>
 
@@ -1941,6 +1955,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 container.innerHTML = `
                     <div class="empty-desk">
                         <div class="empty-desk-text">leggi<br>scrivi<br><span class="usa-testo">usa il testo</span></div>
+                        ${videoDisponibile ? '<button class="btn-che-cosa" onclick="apriVideo()">Che cosa è?</button>' : ''}
                     </div>
                 `;
                 return;
@@ -3018,12 +3033,36 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             improntaSelezionata = null;
         }
 
-        ['modale-carica', 'modale-lista-montaggi', 'modale-avviso', 'modale-conferma', 'modale-archivio', 'modale-promozione', 'modale-biblio', 'modale-nome-montaggio'].forEach(function(modId) {
+        // ---- Video di presentazione: il file testografia.mp4 sta accanto all'app (sul sito); se non c'e', il pulsante non compare ----
+        const VIDEO_FILE = 'testografia.mp4';
+        let videoDisponibile = false;
+        (function () {
+            const v = document.createElement('video');
+            v.preload = 'metadata'; v.muted = true;
+            v.addEventListener('loadedmetadata', () => { videoDisponibile = true; v.removeAttribute('src'); v.load(); if (!testoInLettura) disegnaLeggio(); }, { once: true });
+            v.addEventListener('error', () => { videoDisponibile = false; }, { once: true });
+            v.src = VIDEO_FILE;
+        })();
+        function apriVideo() {
+            const v = document.getElementById('video-presentazione');
+            if (!v.getAttribute('src')) v.src = VIDEO_FILE;
+            document.getElementById('modale-video').style.display = 'flex';
+            v.currentTime = 0; v.play().catch(() => {});
+        }
+        function chiudiVideo() {
+            const v = document.getElementById('video-presentazione');
+            v.pause();
+            document.getElementById('modale-video').style.display = 'none';
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('modale-video').style.display === 'flex') chiudiVideo(); });
+
+        ['modale-video', 'modale-carica', 'modale-lista-montaggi', 'modale-avviso', 'modale-conferma', 'modale-archivio', 'modale-promozione', 'modale-biblio', 'modale-nome-montaggio'].forEach(function(modId) {
             const el = document.getElementById(modId);
             if (!el) return;
             el.addEventListener('click', function(e) {
                 if (e.target !== el) return;
-                if (modId === 'modale-carica') chiudiModale();
+                if (modId === 'modale-video') chiudiVideo();
+                else if (modId === 'modale-carica') chiudiModale();
                 else if (modId === 'modale-lista-montaggi') chiudiModaleMontaggi();
                 else if (modId === 'modale-avviso') chiudiModaleAvviso();
                 else if (modId === 'modale-conferma') annullaConferma();
@@ -3922,14 +3961,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             container.innerHTML = '';
             
             if (stato.step === 1 && !stato.operandoSinistro && stato.catena.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; margin-top: 40px; display: flex; flex-direction: column; align-items: center; gap: 25px; opacity: 0.8;">
-                        <div style="color: #333; font-family: var(--font-ui); font-size: 0.85em; font-style: italic; letter-spacing: 0.5px;">
-                            Seleziona dalla colonna di sinistra<br>per iniziare il montaggio
-                        </div>
-                    </div>
-                `;
-                return;
+                return;   // montaggio vuoto: nessun messaggio
             }
 
             // La base della ricomposizione: all'inizio il testo di partenza (t1), poi il testo ricomposto

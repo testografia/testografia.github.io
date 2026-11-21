@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 373 (versione consolidata, 20 novembre 2026)
+    TESTOGRAFIA — versione 377 (versione consolidata, 20 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -211,7 +211,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             transition: width 0.3s ease, min-width 0.3s ease; 
         }
         #panel-right { flex-grow: 1; background: transparent; box-sizing: border-box; min-width: 350px; display: flex; flex-direction: column; overflow: hidden; transition: width 0.3s ease, min-width 0.3s ease; }
-        #panel-right-content { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding-bottom: 10px; }
+        #panel-right-content { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; padding-bottom: 10px; }
 
         #divider { width: 6px; background-color: rgba(0,0,0,0.02); cursor: col-resize; flex-shrink: 0; transition: background 0.2s; user-select: none; border-left: 2px solid rgba(0,0,0,0.05); border-right: 2px solid rgba(0,0,0,0.05); z-index: 10; }
         #divider:hover { background-color: rgba(0,0,0,0.1); }
@@ -457,6 +457,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             white-space: pre-wrap; 
             text-align: justify; 
             hyphens: auto; 
+            overflow-x: hidden;
+            overflow-wrap: anywhere;
         }
 
         .nota-ref-montaggio { font-size: 0.68em; vertical-align: super; line-height: 0; padding: 0 1px; color: #555; font-weight: 600; }
@@ -519,7 +521,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         .btn-aggiungi-intervento-icon span { font-size: 1.4em; font-weight: 300; line-height: 1; margin-top: -2px; }
 
         .modale-sfondo { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.3); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(1.5px); }
-        .modale-contenuto { background-color: #fff; padding: 30px 20px; border-radius: 8px; width: 90%; max-width: 420px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.15); position: relative; text-align: center; }
+        .modale-contenuto { background-color: #fff; padding: 30px 20px; border-radius: 8px; width: 90%; max-width: 420px; max-height: 90vh; overflow-y: auto; overflow-x: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15); position: relative; text-align: center; }
         .modale-chiudi { position: absolute; top: 10px; right: 15px; font-size: 1.3em; cursor: pointer; color: #777; }
         
         input[type="file"] { display: none; }
@@ -547,7 +549,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
         .modale-montaggi-container { max-width: 360px; padding: 25px 20px; text-align: left; }
         .modale-montaggi-container .modale-montaggio-titolo { margin-bottom: 15px; }
-        .lista-montaggi-body { max-height: 35vh; overflow-y: auto; margin-bottom: 15px; padding-right: 5px; }
+        .lista-montaggi-body { max-height: 35vh; overflow-y: auto; overflow-x: hidden; margin-bottom: 15px; padding-right: 5px; }
         
         .modale-nuovo-montaggio-wrapper { display: flex; flex-direction: column; gap: 10px; align-items: center; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.1); width: 100%; }
         .modale-nuovo-montaggio-wrapper input { width: 100%; max-width: 220px; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-family: var(--font-ui); font-size: 0.85em; box-sizing: border-box; text-align: center; }
@@ -608,7 +610,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
         .modale-archivio-container { max-width: 500px; }
         .archivio-search-bar { width: 100%; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px; font-family: var(--font-ui); font-size: 0.9em; margin-bottom: 15px; box-sizing: border-box; }
-        .lista-archivio-body { max-height: 45vh; overflow-y: auto; margin-bottom: 15px; padding-right: 5px; text-align: left; }
+        .lista-archivio-body { max-height: 45vh; overflow-y: auto; overflow-x: hidden; margin-bottom: 15px; padding-right: 5px; text-align: left; }
 
         .archivio-section-title.a-destra { text-align: right; }
         .archivio-section-title {
@@ -718,7 +720,14 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             transition: opacity 0.3s, transform 0.3s;
             z-index: 99999;
         }
-        /* etichetta fissa di ogni frammento eliminabile: sta nella riga vuota sopra il frammento */
+        /* sotto ogni frammento, al centro: "Frammento n" in corsivo grigio, con la × per eliminarlo; una riga sottile lo separa dal successivo */
+        .pezzo-piede { position: relative; display: flex; justify-content: center; align-items: center; min-height: 18px; margin: 8px 0 14px 0; padding: 0 24px 12px 24px; border-bottom: 1px solid #bbb; font-family: var(--font-ui); font-size: 0.56em; font-style: normal; line-height: 1.3; letter-spacing: 0.04em; color: #555; white-space: normal; user-select: none; -webkit-user-select: none; }
+        html, body { overflow-x: hidden; }
+        .testo-accumulato, .testo-montato, #risultato-foglio, .foglio-libro { overflow-wrap: anywhere; }
+        .pezzo-piede.ultimo { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .pezzo-piede .pezzo-x { position: absolute; right: 0; top: 1px; width: 16px; height: 16px; border: 1px solid #000; background: #fff; color: #000; border-radius: 50%; font-size: 12px; font-style: normal; line-height: 13px; padding: 0; cursor: pointer; }
+        .pezzo-piede .pezzo-x:hover { background: #000; color: #fff; }
+        /* (vecchia etichetta, non piu' usata) */
         .pezzo-badge { display: block; height: 0; position: relative; user-select: none; -webkit-user-select: none; }
         .pezzo-pill { position: absolute; right: 0; top: -21px; display: inline-flex; align-items: center; gap: 4px; box-sizing: border-box; height: 14px; background: #000; color: #fff; border: 1px solid #000; border-radius: 8px; padding: 0 1px 0 6px; font-family: var(--font-ui); font-size: 7px; line-height: 1; font-weight: bold; letter-spacing: 0.2px; white-space: nowrap; text-align: left; font-variant-numeric: tabular-nums; }
         .pezzo-x { background: #fff; color: #000; border: none; border-radius: 50%; width: 10px; height: 10px; padding: 0; font-size: 9px; line-height: 10px; cursor: pointer; }
@@ -812,7 +821,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 373]</div>
+    <div id="version-label">[VERSIONE 377]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -1378,7 +1387,8 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
 
             for (let i = 0; i < righe.length; i++) {
                 let riga = righe[i].trim();
-                if (riga === "") continue;
+                // una riga vuota separa sempre due paragrafi: i capoversi, le battute e i versi del frammento restano a capo
+                if (riga === "") { if (bufferParagrafo !== "") { paragrafiPuliti.push(bufferParagrafo); bufferParagrafo = ""; } continue; }
                 const rigaT = riga.replace(MARCA_RE, '');
                 if (rigaT === "") continue;
                 // un titolo dell'autore e' sempre un paragrafo a se'
@@ -3934,9 +3944,18 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             const ultimo = stato.catena.length ? stato.catena[stato.catena.length - 1] : null;
             frammentiBase = [];
             let out = '', pos = 0, ultimaSegnata = false;
+            const elenco = costruito.pezzi.filter(p => p.inizio >= 0).sort((x, y) => x.inizio - y.inizio);
+            const ultimoPezzo = elenco[elenco.length - 1];
+            // sotto ogni frammento, al centro: "Frammento n" (o "Intervento n") con la × per eliminarlo; una riga sottile lo separa dal successivo
+            const piede = (p, k) => {
+                const nome = p.tipo === 'F' ? 'Frammento ' + p.n : (p.tipo === 'I' ? 'Intervento ' + p.n : 'Testo di partenza');
+                const x = k >= 0 ? '<button class="pezzo-x" onclick="eliminaFrammentoBase(' + k + ')" aria-label="Elimina">&times;</button>' : '';
+                return '<span class="pezzo-piede' + (p === ultimoPezzo ? ' ultimo' : '') + '"><span class="pezzo-tipo">' + nome + '</span>' + x + '</span>';
+            };
+            const testoPezzo = t => html(String(t).replace(/\n+$/, ''));
             costruito.pezzi.filter(p => p.inizio >= 0).sort((x, y) => x.inizio - y.inizio).forEach(p => {
                 if (p.inizio < pos) return;
-                out += html(T.slice(pos, p.inizio));
+                out += html(T.slice(pos, p.inizio).replace(/^\n+|\n+$/g, ''));      // tra un frammento e l'altro c'e' il piede
                 // dove sta questo frammento nella catena delle ricomposizioni
                 let ev = -1, idx = -1;
                 if (p.fr) stato.catena.forEach((e, i) => { const j = (e.destri || []).indexOf(p.fr); if (j >= 0) { ev = i; idx = j; } });
@@ -3948,13 +3967,13 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     frammentiBase.push({ ev: ev, idx: idx, etichetta: p.tipo === 'F' ? String(p.n) : 'Intervento ' + p.n, numero: String(p.n), intervento: p.tipo === 'I' });
                     // l'etichetta mostra solo il numero; gli interventi hanno i colori invertiti (sfondo bianco, × nera)
                     const info = frammentiBase[k];
-                    out += '<span class="pezzo-montaggio" data-k="' + k + '"' + attrId + '><span class="pezzo-badge"><span class="pezzo-pill' + (info.intervento ? ' intervento' : '') + '" title="' + escapeHtmlText(info.etichetta) + '"><span class="pezzo-num">' + escapeHtmlText(info.numero) + '</span><button class="pezzo-x" onclick="eliminaFrammentoBase(' + k + ')" aria-label="Elimina">&times;</button></span></span>' + html(p.testo) + '</span>';
+                    out += '<span class="pezzo-montaggio" data-k="' + k + '"' + attrId + '>' + testoPezzo(p.testo) + piede(p, k) + '</span>';
                 } else {
-                    out += '<span' + attrId + '>' + html(p.testo) + '</span>';
+                    out += '<span' + attrId + '>' + testoPezzo(p.testo) + ((p.tipo === 'F' || p.tipo === 'I' || p.tipo === 'R') ? piede(p, -1) : '') + '</span>';
                 }
                 pos = p.inizio + p.testo.length;
             });
-            out += html(T.slice(pos));
+            out += html(T.slice(pos).replace(/^\n+/, ''));
             if (!ultimaSegnata) out = '<span id="ultima-aggiunta"></span>' + out;
             return out;
         }
@@ -4486,20 +4505,24 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         function htmlDocumentoSequenza(pezzi) {
             if (!pezzi.length) return '<p>Il montaggio è ancora vuoto.</p>';
             let h = '';
+            // ogni pezzo: prima il numero e che cosa e' (Frammento, Intervento), poi il testo, poi da dove viene
             pezzi.forEach(p => {
-                let etichetta;
+                let etichetta, provenienza = '';
                 if (p.tipo === 'F') {
                     const f = fonteDi(p.fr);
                     const pag = descrizionePagina(p.fr);
-                    etichetta = '<span class="num-cerchio">' + p.n + '</span> ' + descrizioneFonte(f) + (pag ? ', ' + pag : '');
+                    etichetta = '<span class="num-cerchio">' + p.n + '</span> Frammento';
+                    provenienza = descrizioneFonte(f) + (pag ? ', ' + pag : '');
                 } else if (p.tipo === 'I') {
                     const t = String(p.testo || '').match(TITOLO_RE);
                     etichetta = '<span class="num-cerchio intervento">' + p.n + '</span> ' + (t ? (t[1] === '1' ? 'Titolo' : 'Sottotitolo') : 'Intervento');
                 } else {
-                    etichetta = (p.fr && p.fr.titoloTesto ? '<em>' + escapeHtmlText(p.fr.titoloTesto) + '</em> · ' : '') + '<strong>Testo di partenza</strong>';
+                    etichetta = '<strong>Testo di partenza</strong>';
+                    if (p.fr && p.fr.titoloTesto) provenienza = '<em>' + escapeHtmlText(p.fr.titoloTesto) + '</em>';
                 }
                 h += '<p class="et">' + etichetta + '</p>\n';
                 htmlTestoDocumento(p.testo).forEach(t => { h += '<p class="cit">' + t + '</p>\n'; });
+                if (provenienza) h += '<p class="fonte">' + provenienza + '</p>\n';
             });
             return h;
         }
@@ -4641,15 +4664,15 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         @page { size: auto; margin: 2.5cm 2cm 3cm 2cm; }
         body { font-family: "EB Garamond", Georgia, serif; font-size: 19px; line-height: 32px; color: #1a1a1a; background-color: #ffffff; max-width: 800px; margin: 0 auto; padding: 40px 20px; text-align: justify; }
         h1 { font-size: 28px; font-weight: normal; text-align: center; margin: 0 0 0.4em 0; letter-spacing: 0.05em; }
-        h1 + p { margin-top: 2.2em; }
+        h1 + p { margin-top: 60px; }
         /* titoli dell'autore */
         p.tit1, p.tit2 { text-indent: 0 !important; text-align: left; font-weight: 600; line-height: 1.3; }
         p.tit1 { font-size: 1.35em; margin: 1.8em 0 0.7em 0; }
         p.tit2 { font-size: 1.12em; margin: 1.4em 0 0.5em 0; }
-        h1 + p.tit1, h1 + p.tit2 { margin-top: 34px !important; }
+        h1 + p.tit1, h1 + p.tit2 { margin-top: 60px !important; }
         .logo-export { position: absolute; top: 16px; left: 24px; width: 160px; height: 64px; pointer-events: none; }
         /* Montaggio e Fonti: sotto il titolo lo stesso spazio che c'e' sopra (34px) */
-        h1 + p.et, h1 + p.bib, h1 + p.h { margin-top: 34px !important; }
+        h1 + p.et, h1 + p.bib, h1 + p.h { margin-top: 60px !important; }
         p.h + p.bib { margin-top: 0.6em; }
         .author { font-size: 15px; text-align: center; font-style: italic; color: #555; margin: 0 0 2.5em 0; }
         p { margin: 0; padding: 0; }
@@ -4682,6 +4705,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         p.h { font-weight: 600; text-indent: 0 !important; margin-top: 1.6em; text-align: left; }
         p.et { text-indent: 0 !important; margin-top: 1.1em; text-align: left; font-size: 0.78em; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #444; letter-spacing: 0.02em; line-height: 1.5; }
         p.cit { margin-left: 1.2em; text-indent: 0 !important; text-align: justify; }
+        p.fonte { margin: 0.3em 0 0 1.54em; text-indent: 0 !important; text-align: left; font-size: 0.78em; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #555; letter-spacing: 0.02em; line-height: 1.5; }
         p.bib { padding-left: 1.5em; text-indent: -1.5em !important; margin: 0 0 0.7em 0; text-align: left; }
         .num-cerchio { display: inline-flex; align-items: center; justify-content: center; min-width: 1.6em; height: 1.6em; padding: 0 0.3em; box-sizing: border-box; border-radius: 0.8em; background: #fff; color: #000; border: 1px solid #000; font-weight: bold; font-size: 0.85em; line-height: 1; margin-right: 0.45em; vertical-align: 0.05em; }
         .num-cerchio.intervento { background: #000; color: #fff; }
@@ -4947,7 +4971,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     const np = p.querySelector('.num-par');
                     let t = testoPerPdf(p);
                     if (c || np) { const cl = p.cloneNode(true); cl.querySelectorAll('.num-cerchio, .num-par, .linguetta').forEach(x => x.remove()); t = cl.textContent.trim(); }
-                    return { el: p, t: scrivibile(t).trim(), h: p.classList.contains('h'), et: p.classList.contains('et'), cit: p.classList.contains('cit'), bib: p.classList.contains('bib'),
+                    return { el: p, t: scrivibile(t).trim(), h: p.classList.contains('h'), et: p.classList.contains('et'), cit: p.classList.contains('cit'), fonte: p.classList.contains('fonte'), bib: p.classList.contains('bib'),
                              tit: p.classList.contains('tit1') ? 1 : (p.classList.contains('tit2') ? 2 : 0), num: np ? np.textContent.trim() : '', senzaRientro: p.style.textIndent !== '' && parseFloat(p.style.textIndent) === 0,
                              cerchio: c ? { n: c.textContent.trim(), intervento: c.classList.contains('intervento') } : null };
                 })
@@ -4955,6 +4979,12 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             voci.forEach((v, idx) => {
                 if (v.bib) { scriviVoceBibliografia(v.el); return; }
                 if (v.cerchio) { scriviEtichettaCerchio(v); return; }
+                if (v.fonte) {   // da dove viene il frammento: piccolo e grigio, dopo il testo
+                    y += 1;
+                    dividiRighe(v.t, FONT.r, 10, W - 6, W - 6).forEach(r => { if (y + LH > MAX_Y) nuovaPagina(); scrivi(r, ML + 6, FONT.r, 10, GRIGIO); y += LH * 0.9; });
+                    y += 4;
+                    return;
+                }
                 // titoli dell'autore: in grassetto, allineati a sinistra, mai soli in fondo alla pagina
                 if (v.tit) {
                     const fsT = v.tit === 1 ? 15 : 13;
@@ -5033,7 +5063,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             clone.querySelectorAll("p").forEach(p => p.removeAttribute("style"));
             clone.querySelectorAll('.num-par, .linguetta').forEach(d => d.remove());
             if (document.body.classList.contains('senza-marche')) clone.querySelectorAll('.marca-f').forEach(s => s.remove());
-            const wordStyle = 'p.tit1 { font-size: 15pt; font-weight: bold; text-indent: 0; text-align: left; margin: 18pt 0 8pt 0; } p.tit2 { font-size: 13pt; font-weight: bold; text-indent: 0; text-align: left; margin: 14pt 0 6pt 0; } .num-cerchio { background: #ffffff; color: #000000; border: 1px solid #000000; font-weight: bold; padding: 0 3pt; border-radius: 8pt; } .num-cerchio.intervento { background: #000000; color: #ffffff; } p.h, p.et { font-weight: bold; text-indent: 0; } p.et { margin-top: 10pt; } p.cit { margin-left: 18pt; text-indent: 0; text-align: justify; } sup.marca-f { font-size: 7pt; color: #777777; } ' + '@page WordSection1 { size: 595.3pt 841.9pt; margin: 70.85pt 56.7pt 85.05pt 56.7pt; } div.WordSection1 { page: WordSection1; } body { font-family: Garamond, "EB Garamond", serif; font-size: 12pt; line-height: 1.5; text-align: justify; color: #1a1a1a; } h1 { font-family: Garamond, serif; font-size: 20pt; text-align: center; margin: 0 0 0.3em 0; font-weight: normal; letter-spacing: 0.05em; } h1 + p { margin-top: 24pt; } .author { font-size: 11pt; text-align: center; font-style: italic; color: #555; margin: 0 0 2em 0; } p { text-indent: 1.5em; margin: 0; } p:first-of-type { text-indent: 0; } sup.nota-ref-export { font-size: 0.65em; vertical-align: super; line-height: 0; padding: 0 1px; color: #555; font-weight: 600; } .endnotes { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid #ddd; } .endnotes h2 { font-size: 14pt; font-weight: normal; text-align: center; margin: 0 0 1.5em 0; letter-spacing: 0.1em; text-transform: uppercase; } p.endnote-paragraph { font-size: 10pt; line-height: 1.4; text-align: justify; margin-bottom: 8pt; padding-left: 15pt; text-indent: -15pt; } .endnote-num { font-weight: 600; } p.bib { padding-left: 18pt; text-indent: -18pt; margin: 0 0 6pt 0; text-align: left; }';
+            const wordStyle = 'p.tit1 { font-size: 15pt; font-weight: bold; text-indent: 0; text-align: left; margin: 18pt 0 8pt 0; } p.tit2 { font-size: 13pt; font-weight: bold; text-indent: 0; text-align: left; margin: 14pt 0 6pt 0; } .num-cerchio { background: #ffffff; color: #000000; border: 1px solid #000000; font-weight: bold; padding: 0 3pt; border-radius: 8pt; } .num-cerchio.intervento { background: #000000; color: #ffffff; } p.h, p.et { font-weight: bold; text-indent: 0; } p.et { margin-top: 10pt; } p.cit { margin-left: 18pt; text-indent: 0; text-align: justify; } p.fonte { margin: 3pt 0 0 18pt; text-indent: 0; text-align: left; font-family: Arial, sans-serif; font-size: 9pt; color: #555555; } sup.marca-f { font-size: 7pt; color: #777777; } ' + '@page WordSection1 { size: 595.3pt 841.9pt; margin: 70.85pt 56.7pt 85.05pt 56.7pt; } div.WordSection1 { page: WordSection1; } body { font-family: Garamond, "EB Garamond", serif; font-size: 12pt; line-height: 1.5; text-align: justify; color: #1a1a1a; } h1 { font-family: Garamond, serif; font-size: 20pt; text-align: center; margin: 0 0 0.3em 0; font-weight: normal; letter-spacing: 0.05em; } h1 + p { margin-top: 24pt; } .author { font-size: 11pt; text-align: center; font-style: italic; color: #555; margin: 0 0 2em 0; } p { text-indent: 1.5em; margin: 0; } p:first-of-type { text-indent: 0; } sup.nota-ref-export { font-size: 0.65em; vertical-align: super; line-height: 0; padding: 0 1px; color: #555; font-weight: 600; } .endnotes { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid #ddd; } .endnotes h2 { font-size: 14pt; font-weight: normal; text-align: center; margin: 0 0 1.5em 0; letter-spacing: 0.1em; text-transform: uppercase; } p.endnote-paragraph { font-size: 10pt; line-height: 1.4; text-align: justify; margin-bottom: 8pt; padding-left: 15pt; text-indent: -15pt; } .endnote-num { font-weight: 600; } p.bib { padding-left: 18pt; text-indent: -18pt; margin: 0 0 6pt 0; text-align: left; }';
             const endnotesNode = document.getElementById('endnotes-container');
             const endnotesHtml = endnotesNode ? endnotesNode.outerHTML : '';
             const htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + String(titoloBase || '').replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</title><style>' + wordStyle + '</style></head><body><div class="WordSection1">' + clone.innerHTML + endnotesHtml + '</div></body></html>';
@@ -5055,6 +5085,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 if (p.classList.contains('h') || p.classList.contains('tit1')) mdContent += "## " + plain + "\\n\\n";
                 else if (p.classList.contains('tit2')) mdContent += "### " + plain + "\\n\\n";
                 else if (p.classList.contains('cit')) mdContent += "> " + plain + "\\n\\n";
+                else if (p.classList.contains('fonte')) mdContent += "— " + plain + "\\n\\n";
                 else mdContent += plain + "\\n\\n";
             });
             const endnotesEl = document.getElementById('endnotes-container');
@@ -5103,7 +5134,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     endnotesXhtml += '</div>';
                 }
             }
-            const epubCss = '.num-cerchio { display: inline-block; min-width: 1.5em; height: 1.5em; line-height: 1.5em; text-align: center; border-radius: 0.75em; background: #fff; color: #000; border: 1px solid #000; font-size: 0.85em; margin-right: 0.4em; } .num-cerchio.intervento { background: #000; color: #fff; } p.et { font-weight: bold; text-indent: 0; margin-top: 1em; text-align: left; } p.cit { margin-left: 1.2em; text-indent: 0; text-align: justify; } sup.marca-f { font-size: 0.65em; line-height: 0; color: #777777; } ' + 'body { font-family: Georgia, "EB Garamond", serif; text-align: justify; margin: 5%; font-size: 1.05em; line-height: 1.6; color: #1a1a1a; } h1 { text-align: center; font-weight: normal; letter-spacing: 0.05em; font-size: 1.8em; margin: 1em 0 0.3em 0; } h1 + p { margin-top: 2em; } .author { text-align: center; font-style: italic; color: #555; margin: 0 0 2em 0; } p { text-indent: 1.5em; margin: 0; } p:first-of-type { text-indent: 0; } sup { font-size: 0.7em; vertical-align: super; } .endnotes { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid #ddd; } .endnotes h2 { font-size: 1.2em; font-weight: normal; text-align: center; margin: 0 0 1.5em 0; letter-spacing: 0.1em; text-transform: uppercase; } p.endnote-paragraph { font-size: 0.85em; line-height: 1.5; text-align: justify; margin-bottom: 10px; padding-left: 20px; text-indent: -20px; } .endnote-num { font-weight: 600; } p.bib { padding-left: 1.5em; text-indent: -1.5em; margin: 0 0 0.7em 0; text-align: left; }';
+            const epubCss = '.num-cerchio { display: inline-block; min-width: 1.5em; height: 1.5em; line-height: 1.5em; text-align: center; border-radius: 0.75em; background: #fff; color: #000; border: 1px solid #000; font-size: 0.85em; margin-right: 0.4em; } .num-cerchio.intervento { background: #000; color: #fff; } p.et { font-weight: bold; text-indent: 0; margin-top: 1em; text-align: left; } p.cit { margin-left: 1.2em; text-indent: 0; text-align: justify; } p.fonte { margin: 0.3em 0 0 1.2em; text-indent: 0; text-align: left; font-size: 0.8em; color: #555; } sup.marca-f { font-size: 0.65em; line-height: 0; color: #777777; } ' + 'body { font-family: Georgia, "EB Garamond", serif; text-align: justify; margin: 5%; font-size: 1.05em; line-height: 1.6; color: #1a1a1a; } h1 { text-align: center; font-weight: normal; letter-spacing: 0.05em; font-size: 1.8em; margin: 1em 0 0.3em 0; } h1 + p { margin-top: 2em; } .author { text-align: center; font-style: italic; color: #555; margin: 0 0 2em 0; } p { text-indent: 1.5em; margin: 0; } p:first-of-type { text-indent: 0; } sup { font-size: 0.7em; vertical-align: super; } .endnotes { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid #ddd; } .endnotes h2 { font-size: 1.2em; font-weight: normal; text-align: center; margin: 0 0 1.5em 0; letter-spacing: 0.1em; text-transform: uppercase; } p.endnote-paragraph { font-size: 0.85em; line-height: 1.5; text-align: justify; margin-bottom: 10px; padding-left: 20px; text-indent: -20px; } .endnote-num { font-weight: 600; } p.bib { padding-left: 1.5em; text-indent: -1.5em; margin: 0 0 0.7em 0; text-align: left; }';
             const autoreDiv = autoreBase ? '<div class="author">' + escXml(autoreBase) + '</div>\\n' : "";
             const testoXhtml = '<?xml version="1.0" encoding="UTF-8"?>\\n<!DOCTYPE html>\\n<html xmlns="http://www.w3.org/1999/xhtml">\\n<head><title>' + escXml(titoloBase) + '</title>\\n<style>' + epubCss + '</style>\\n</head>\\n<body>\\n<h1>' + escXml(titoloBase) + '</h1>\\n' + autoreDiv + htmlParagrafi + endnotesXhtml + '\\n</body>\\n</html>';
             zip.file("OEBPS/testo.xhtml", testoXhtml);

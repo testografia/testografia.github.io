@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 369 (versione consolidata, 20 novembre 2026)
+    TESTOGRAFIA — versione 370 (versione consolidata, 20 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -809,7 +809,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 369]</div>
+    <div id="version-label">[VERSIONE 370]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -3108,8 +3108,12 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 tmp.querySelectorAll('sup.nota-ref-montaggio[data-raw]').forEach(sup => {
                     sup.replaceWith(document.createTextNode('⟦' + sup.getAttribute('data-raw') + '⟧'));
                 });
+                // un passo che attraversa piu' paragrafi (o versi) li tiene separati: altrimenti si incollerebbero ("parli.MELETO")
+                const CAPOVERSO = '\uE020';
+                tmp.querySelectorAll('p, li, h1, h2, h3, h4, h5, h6, blockquote').forEach(el => el.appendChild(document.createTextNode(CAPOVERSO)));
                 let raw = tmp.textContent || "";
                 raw = pulisciTestoPdfGrezzo(raw);
+                raw = raw.replace(/\s*\uE020[\s\uE020]*/g, '\n\n').trim();
                 return raw;
             } catch (e) {
                 console.error('estraiTestoConMarker:', e);

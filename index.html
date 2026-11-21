@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 370 (versione consolidata, 20 novembre 2026)
+    TESTOGRAFIA — versione 372 (versione consolidata, 20 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -589,6 +589,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         .usa-testo { font-size: 0.8em; }
         /* video di presentazione: si apre dal logo; finestra piccola, comandi sotto l'immagine (non coprono le didascalie) */
         .logo-wrapper.con-video { pointer-events: auto; cursor: pointer; }
+        .logo-wrapper .occhio-video { display: none; }
+        .logo-wrapper.con-video > svg:first-child { display: none; }
+        .logo-wrapper.con-video .occhio-video { display: block; }
         .modale-video { position: relative; width: min(62vw, 720px, calc(72vh * 16 / 9)); background: #fff; border: 1px solid #000; border-radius: 6px; padding: 8px 8px 0 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
         .modale-video video { display: block; width: 100%; height: auto; background: #fff; cursor: pointer; }
         .barra-video { display: flex; align-items: center; gap: 10px; height: 34px; }
@@ -809,7 +812,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 370]</div>
+    <div id="version-label">[VERSIONE 372]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -825,6 +828,14 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
                     <text x="42" y="19" font-family="'Montserrat', sans-serif" font-weight="300" font-size="7.5" fill="#000" text-anchor="middle">più</text>
                     <line x1="34.51" y1="24" x2="50" y2="24" stroke="#000" stroke-width="0.9" stroke-opacity="0.65" stroke-linecap="round"/>
                     <text x="53" y="20" font-family="'Montserrat', sans-serif" font-weight="300" font-size="7.5" fill="#000" text-anchor="middle" transform="rotate(90 53 20)">tutto</text>
+                </svg>
+                <!-- con il video disponibile, al posto del logo c'e' uno schermo: cliccandolo parte il video -->
+                <svg class="occhio-video" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" width="24" height="24" role="img" aria-label="Guarda il video">
+                    <circle cx="20" cy="20" r="18.5" fill="#ffffff" stroke="#000" stroke-width="1.4"/>
+                    <rect x="9" y="11" width="22" height="14.5" rx="1.5" fill="#ffffff" stroke="#000" stroke-width="1.8"/>
+                    <path d="M 17.5 14.6 L 23.6 18.25 L 17.5 21.9 Z" fill="#000"/>
+                    <line x1="20" y1="25.5" x2="20" y2="29" stroke="#000" stroke-width="1.8"/>
+                    <line x1="15" y1="29.5" x2="25" y2="29.5" stroke="#000" stroke-width="1.8" stroke-linecap="round"/>
                 </svg>
             </div>
             <div class="top-bar-left-center">

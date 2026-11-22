@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 380 (22 novembre 2026)
+    TESTOGRAFIA — versione 381 (22 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -563,8 +563,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         .montaggio-item-data { font-family: var(--font-ui); font-size: 0.7em; color: #888; }
         .montaggio-item-del { background: transparent; border: none; color: #ccc; cursor: pointer; font-size: 1.2em; padding: 0 6px; transition: color 0.2s; line-height: 1; flex-shrink: 0; }
         .montaggio-item-del:hover { color: #000; }
-        .montaggio-item-salva { background: transparent; border: 1px solid #ddd; border-radius: 10px; color: #555; cursor: pointer; font-family: var(--font-ui); font-size: 0.65em; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; margin-right: 4px; flex-shrink: 0; }
-        .montaggio-item-salva:hover { background: #000; color: #fff; border-color: #000; }
         .apri-da-file { display: block; text-align: center; font-family: var(--font-ui); font-size: 0.7em; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; color: #333; background: #f5f5f5; border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; padding: 12px 8px; margin: 14px 0 0; cursor: pointer; transition: all 0.15s; }
         .apri-da-file:hover { border-color: #000; }
 
@@ -817,7 +815,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 380]</div>
+    <div id="version-label">[VERSIONE 381]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -943,7 +941,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             <div class="lista-montaggi-body" id="lista-montaggi-body"><div style="text-align:center; color:#999; font-size:0.8em; padding:15px;">Caricamento...</div></div>
             
             <label class="apri-da-file" for="file-progetto">Apri da file</label>
-            <input type="file" id="file-progetto" accept=".montaggio,application/json" style="display:none;" onchange="apriProgettoDaFile(this)">
+            <input type="file" id="file-progetto" accept=".pdf,.doc,.epub,.md,.montaggio,application/pdf,application/msword,application/epub+zip,text/markdown,application/json" style="display:none;" onchange="apriProgettoDaFile(this)">
         </div>
     </div>
 
@@ -1811,6 +1809,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             }
             
             let nuovoTestoId = null;
+            const idMontaggioConcluso = currentMontaggioId || null;
             
             try {
                 const { data: testoData, error: testoError } = await db.from('testi').insert([{
@@ -1818,7 +1817,8 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     autore: null,
                     corpus: 'Archivio',
                     tipo: 'ricomposto',
-                    pdf_url: null
+                    pdf_url: null,
+                    montaggio_id: idMontaggioConcluso
                 }]).select();
                 
                 if (testoError) throw testoError;
@@ -1842,6 +1842,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     tipo: 'ricomposto',
                     corpus: 'Archivio',
                     pdf_url: null,
+                    montaggio_id: idMontaggioConcluso,
                     paragrafi: paragrafi.map((c, idx) => ({
                         id: 'local-' + nuovoTestoId + '-' + idx,
                         testo_id: nuovoTestoId,
@@ -1895,7 +1896,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                         ${t.autore ? `<div class="montaggio-item-data">${escapeHtmlText(t.autore)}</div>` : ''}
                     </div>
                     ${isRicomposto ? '' : `<button class="btn-carica btn-outline" onclick="event.stopPropagation(); apriModaleBiblio('${escapeHtmlText(t.id)}');" style="font-size: 0.65em; padding: 0 8px; height: 24px; margin-right: 5px;">Dati</button>`}
-                    <button class="btn-carica" onclick="apriTesto('${escapeHtmlText(t.id)}'); chiudiArchivio();" style="margin-right: 5px;">Apri</button>
+                    <button class="btn-carica" onclick="apriDaArchivio('${escapeHtmlText(t.id)}');" style="margin-right: 5px;">Apri</button>
                     <button class="montaggio-item-del" onclick="eliminaTesto('${escapeHtmlText(t.id)}')" data-tooltip="RIMUOVI">&times;</button>
                 </div>
             `;
@@ -1959,6 +1960,24 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             }
             
             container.innerHTML = html;
+        }
+
+        // dall'Archivio: il testo va nel Leggio; se e' un Ricostruito, a destra si apre anche il montaggio da cui e' nato
+        async function apriDaArchivio(id) {
+            apriTesto(id); chiudiArchivio();
+            const t = testiDatabase.find(x => String(x.id) === String(id));
+            if (!t || t.tipo !== 'ricomposto') return;
+            let idM = t.montaggio_id || null;
+            try {
+                const { data: lista } = await db.from('montaggi').select('id, nome');
+                const elenco = lista || [];
+                if (!idM || !elenco.some(m => String(m.id) === String(idM))) {
+                    // testi conclusi prima della versione 381: si cerca il montaggio con lo stesso titolo
+                    const omonimi = elenco.filter(m => m.nome === t.titolo);
+                    idM = omonimi.length === 1 ? omonimi[0].id : null;
+                }
+            } catch (e) { idM = null; }
+            if (idM && String(idM) !== String(currentMontaggioId)) await apriMontaggio(idM);
         }
 
         function apriTesto(id) {
@@ -2711,7 +2730,6 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                             <div class="montaggio-item-nome">${escapeHtmlText(m.nome)}</div>
                             <div class="montaggio-item-data">${formatDataRelativa(m.updated_at)}</div>
                         </div>
-                        <button class="montaggio-item-salva" title="Salva su file">salva</button>
                         <button class="montaggio-item-del" data-tooltip="RIMUOVI">&times;</button>
                     </div>
                 `;
@@ -2721,10 +2739,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 const id = el.getAttribute('data-id');
                 const nome = el.getAttribute('data-nome');
                 el.addEventListener('click', function(e) {
-                    if (e.target.closest('.montaggio-item-salva')) {
-                        e.stopPropagation();
-                        salvaProgettoSuFile(id);
-                    } else if (e.target.closest('.montaggio-item-del')) {
+                    if (e.target.closest('.montaggio-item-del')) {
                         e.stopPropagation();
                         eliminaMontaggio(id, nome);
                     } else {
@@ -2735,14 +2750,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         }
 
         // ---- Il montaggio come file (.montaggio): si salva sul proprio dispositivo e si riapre su qualsiasi computer ----
-        function nomeFileSicuro(nome) {
-            return (nome || 'montaggio').replace(/[^\w\sÀ-ÿ-]/g, '').trim().replace(/\s+/g, '_') || 'montaggio';
-        }
-
-        async function salvaProgettoSuFile(id) {
-            const { data, error } = await db.from('montaggi').select('*').eq('id', id).single();
-            if (error || !data) { mostraAvviso('Impossibile leggere il montaggio.'); return; }
-            const statoDaSalvare = (String(id) === String(currentMontaggioId)) ? stato : (data.stato || statoVuoto());
+        function contenutoMontaggio(nome, statoDaSalvare) {
             const fonti = [];
             (statoDaSalvare.testiImpiegati || []).forEach(ti => {
                 const t = testiDatabase.find(x => String(x.id) === String(ti.id));
@@ -2753,15 +2761,37 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     paragrafi: (t.pdf_url || t.tipo !== 'ricomposto') ? undefined : (t.paragrafi || []).map(p => ({ contenuto: p.contenuto, ordine: p.ordine }))
                 });
             });
-            const contenuto = { formato: 'testografia-montaggio', versione: 1, salvato: new Date().toISOString(), nome: data.nome, stato: statoDaSalvare, fonti: fonti };
-            const blob = new Blob([JSON.stringify(contenuto)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = nomeFileSicuro(data.nome) + '.montaggio';
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
-            mostraToast('Montaggio salvato su file');
+            return { formato: 'testografia-montaggio', versione: 1, salvato: new Date().toISOString(), nome: nome, stato: statoDaSalvare, fonti: fonti };
+        }
+
+        // il montaggio viaggia nascosto dentro la testografia esportata: PDF (allegato), EPUB (file interno), Word e Markdown (commento invisibile)
+        async function estraiMontaggioDaFile(file) {
+            const nome = (file.name || '').toLowerCase();
+            const buf = await file.arrayBuffer();
+            const testoDa = b => new TextDecoder('utf-8').decode(b);
+            const daBase64 = b64 => decodeURIComponent(escape(atob(b64)));
+            if (nome.endsWith('.pdf')) {
+                const lib = await preparaPdfjs();
+                const doc = await lib.getDocument({ data: new Uint8Array(buf), useWorkerFetch: false, BinaryDataFactory: FabbricaDatiIncorporati, wasmUrl: 'incorporato/' }).promise;
+                try {
+                    const allegati = await doc.getAttachments();
+                    const voci = !allegati ? [] : (allegati instanceof Map ? [...allegati.entries()] : Object.entries(allegati));
+                    const trovata = voci.find(([chiave, v]) => /testografia/i.test(chiave + ' ' + ((v && (v.filename || v.rawFilename)) || '')));
+                    if (!trovata) return null;
+                    // pdf.js 6 consegna il contenuto a parte, su richiesta
+                    const contenuto = (trovata[1] && trovata[1].content) || (doc.getAttachmentContent ? await doc.getAttachmentContent(trovata[0]) : null);
+                    return contenuto ? testoDa(contenuto) : null;
+                } finally { try { if (doc && typeof doc.destroy === "function") doc.destroy(); } catch (e) {} }
+            }
+            if (nome.endsWith('.epub')) {
+                const zip = await JSZip.loadAsync(buf);
+                const f = zip.file('META-INF/testografia-montaggio.json');
+                return f ? await f.async('string') : null;
+            }
+            const testo = testoDa(buf);
+            const m = testo.match(/testografia-montaggio:([A-Za-z0-9+\/=]+)/);
+            if (m) return daBase64(m[1]);
+            return /^\s*\{/.test(testo) ? testo : null;      // vecchi file .montaggio
         }
 
         async function apriProgettoDaFile(input) {
@@ -2769,7 +2799,9 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             input.value = '';
             if (!file) return;
             try {
-                const dati = JSON.parse(await file.text());
+                const grezzo = await estraiMontaggioDaFile(file);
+                if (!grezzo) { mostraAvviso('Questo file non contiene un montaggio di Testografia.'); return; }
+                const dati = JSON.parse(grezzo);
                 if (!dati || dati.formato !== 'testografia-montaggio' || !dati.stato) throw new Error('il file non è un montaggio valido');
                 const idMap = {};
                 for (const f of (dati.fonti || [])) {
@@ -4645,6 +4677,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 fonti: { titolo: titolo, titoloHtml: titoloHtml, sottotitoloHtml: '', sottotitolo: '', html: htmlDocumentoFonti(costruito.pezzi) }
             }).replace(/</g, '\\u003c');
             const noteJson = JSON.stringify(hasNotes ? '<h2>Note</h2>' + endnotesHtml : '').replace(/</g, '\\u003c');
+            const montaggioJson = JSON.stringify(contenutoMontaggio(titolo, stato)).replace(/</g, '\\u003c');
             const nomiJson = JSON.stringify({ testo: nomeDoc, sequenza: nomeDoc + ' montaggio', fonti: nomeDoc + ' fonti' }).replace(/</g, '\\u003c');
 
             const htmlContent = `<!DOCTYPE html>
@@ -4741,6 +4774,9 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
     </div>
     <script>
         const DOCUMENTI = ${documentiJson};
+        const MONTAGGIO_DATI = ${montaggioJson};
+        const MONTAGGIO_TESTO = JSON.stringify(MONTAGGIO_DATI);
+        const MONTAGGIO_COMMENTO = 'testografia-montaggio:' + btoa(unescape(encodeURIComponent(MONTAGGIO_TESTO)));
         const NOTE_HTML = ${noteJson};
         const NOMI_FILE = ${nomiJson};
         let docCorrente = 'testo';
@@ -5048,6 +5084,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 p.drawText(n, { x: (PW - larghezza(n, FONT.r, 10)) / 2 * MM, y: 15 * MM, size: 10, font: FONT.r, color: GRIGIO_NUM });
             });
 
+            await pdf.attach(new TextEncoder().encode(MONTAGGIO_TESTO), 'testografia-montaggio.json', { mimeType: 'application/json', description: 'Montaggio di Testografia: si riapre con «Apri da file»' });
             const bytes = await pdf.save();
             const blob = new Blob([bytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
@@ -5062,7 +5099,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             const wordStyle = 'p.tit1 { font-size: 15pt; font-weight: bold; text-indent: 0; text-align: left; margin: 18pt 0 8pt 0; } p.tit2 { font-size: 13pt; font-weight: bold; text-indent: 0; text-align: left; margin: 14pt 0 6pt 0; } .num-cerchio { background: #ffffff; color: #000000; border: 1px solid #000000; font-weight: bold; padding: 0 3pt; border-radius: 8pt; } .num-cerchio.intervento { background: #000000; color: #ffffff; } p.h, p.et { font-weight: bold; text-indent: 0; } p.et { margin-top: 10pt; } p.cit { margin-left: 18pt; text-indent: 0; text-align: justify; } p.fonte { margin: 3pt 0 0 18pt; text-indent: 0; text-align: left; font-family: Arial, sans-serif; font-size: 9pt; color: #555555; } sup.marca-f { font-size: 7pt; color: #777777; } ' + '@page WordSection1 { size: 595.3pt 841.9pt; margin: 70.85pt 56.7pt 85.05pt 56.7pt; } div.WordSection1 { page: WordSection1; } body { font-family: Garamond, "EB Garamond", serif; font-size: 12pt; line-height: 1.5; text-align: justify; color: #1a1a1a; } h1 { font-family: Garamond, serif; font-size: 20pt; text-align: center; margin: 0 0 0.3em 0; font-weight: normal; letter-spacing: 0.05em; } h1 + p { margin-top: 24pt; } .author { font-size: 11pt; text-align: center; font-style: italic; color: #555; margin: 0 0 2em 0; } p { text-indent: 1.5em; margin: 0; } p:first-of-type { text-indent: 0; } sup.nota-ref-export { font-size: 0.65em; vertical-align: super; line-height: 0; padding: 0 1px; color: #555; font-weight: 600; } .endnotes { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid #ddd; } .endnotes h2 { font-size: 14pt; font-weight: normal; text-align: center; margin: 0 0 1.5em 0; letter-spacing: 0.1em; text-transform: uppercase; } p.endnote-paragraph { font-size: 10pt; line-height: 1.4; text-align: justify; margin-bottom: 8pt; padding-left: 15pt; text-indent: -15pt; } .endnote-num { font-weight: 600; } p.bib { padding-left: 18pt; text-indent: -18pt; margin: 0 0 6pt 0; text-align: left; }';
             const endnotesNode = document.getElementById('endnotes-container');
             const endnotesHtml = endnotesNode ? endnotesNode.outerHTML : '';
-            const htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + String(titoloBase || '').replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</title><style>' + wordStyle + '</style></head><body><div class="WordSection1">' + clone.innerHTML + endnotesHtml + '</div></body></html>';
+            const htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + String(titoloBase || '').replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</title><style>' + wordStyle + '</style></head><body><div class="WordSection1">' + clone.innerHTML + endnotesHtml + '</div><!-- ' + MONTAGGIO_COMMENTO + ' --></body></html>';
             const blob = new Blob(['\\ufeff', htmlContent], { type: "application/msword" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a"); a.href = url; a.download = nomeFile + ".doc"; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
@@ -5094,6 +5131,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     mdContent += "[^" + num + "]: " + text + "\\n";
                 });
             }
+            mdContent += "\\n<!-- " + MONTAGGIO_COMMENTO + " -->\\n";
             const blob = new Blob([mdContent], { type: "text/markdown;charset=utf-8" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a"); a.href = url; a.download = nomeFile + ".md"; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
@@ -5134,6 +5172,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             const autoreDiv = autoreBase ? '<div class="author">' + escXml(autoreBase) + '</div>\\n' : "";
             const testoXhtml = '<?xml version="1.0" encoding="UTF-8"?>\\n<!DOCTYPE html>\\n<html xmlns="http://www.w3.org/1999/xhtml">\\n<head><title>' + escXml(titoloBase) + '</title>\\n<style>' + epubCss + '</style>\\n</head>\\n<body>\\n<h1>' + escXml(titoloBase) + '</h1>\\n' + autoreDiv + htmlParagrafi + endnotesXhtml + '\\n</body>\\n</html>';
             zip.file("OEBPS/testo.xhtml", testoXhtml);
+            zip.file("META-INF/testografia-montaggio.json", MONTAGGIO_TESTO);
             const content = await zip.generateAsync({ type: "blob" });
             const url = URL.createObjectURL(content);
             const a = document.createElement("a"); a.href = url; a.download = nomeFile + ".epub"; document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);

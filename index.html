@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 384 (23 novembre 2026)
+    TESTOGRAFIA — versione 385 (23 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -819,7 +819,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 384]</div>
+    <div id="version-label">[VERSIONE 385]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -1791,8 +1791,12 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             if (!t) return;
             const nuovo = el.textContent.replace(/\s+/g, ' ').trim();
             if (!nuovo) { stato.titoli = stato.titoli.filter(x => x !== t); salvaStatoLocale(); disegnaRisultato(); return; }
-            if (nuovo !== t.testo) { t.testo = nuovo; salvaStatoLocale(); }
+            // il livello viene dalla numerazione: «1» e' un titolo, «1.1» un paragrafo
+            const livello = /^\d+\.\d+/.test(nuovo) ? 2 : 1;
+            const cambiaLivello = livello !== t.livello;
+            if (nuovo !== t.testo || cambiaLivello) { t.testo = nuovo; t.livello = livello; salvaStatoLocale(); }
             el.textContent = nuovo;
+            if (cambiaLivello) disegnaRisultato();
         }
         function eliminaTitoloRisultato(id) {
             stato.titoli = (stato.titoli || []).filter(x => x.id !== id);
@@ -4017,6 +4021,21 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         // ---- Il testo della base diviso nei suoi frammenti: ognuno si puo' eliminare (tranne il testo di partenza) ----
         let frammentiBase = [];   // per ogni frammento mostrato: { ev, idx, etichetta }
 
+        // «Mario Vargas Llosa, La città e i cani, p. 12»: l'autore nell'ordine naturale, il titolo, la pagina del documento caricato
+        function provenienzaBreve(fr) {
+            if (!fr) return '';
+            const f = fonteDi(fr);
+            let autore = String(f.autore || '').trim();
+            const v = autore.split(',');
+            if (v.length === 2 && v[1].trim()) autore = v[1].trim() + ' ' + v[0].trim();
+            const parti = [];
+            if (autore) parti.push(escapeHtmlText(autore));
+            if (f.titolo) parti.push(escapeHtmlText(f.titolo));
+            const pag = descrizionePagina(fr);
+            if (pag) parti.push(pag);
+            return parti.length ? ' · ' + parti.join(', ') : '';
+        }
+
         function htmlBaseConFrammenti() {
             const costruito = costruisciPezzi();
             const T = costruito.T;
@@ -4026,9 +4045,10 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             let out = '', pos = 0, ultimaSegnata = false;
             const elenco = costruito.pezzi.filter(p => p.inizio >= 0).sort((x, y) => x.inizio - y.inizio);
             const ultimoPezzo = elenco[elenco.length - 1];
-            // sotto ogni frammento, al centro: "Frammento n" (o "Intervento n") con la × per eliminarlo; una riga sottile lo separa dal successivo
+            // sotto ogni frammento, al centro: "F1 · autore, titolo, p. n" (o "Intervento n") con la × per eliminarlo;
+            // una riga sottile lo separa dal successivo
             const piede = (p, k) => {
-                const nome = p.tipo === 'F' ? 'Frammento ' + p.n : (p.tipo === 'I' ? 'Intervento ' + p.n : 'Testo di partenza');
+                const nome = p.tipo === 'F' ? 'F' + p.n + provenienzaBreve(p.fr) : (p.tipo === 'I' ? 'Intervento ' + p.n : 'Testo di partenza');
                 const x = k >= 0 ? '<button class="pezzo-x" onclick="eliminaFrammentoBase(' + k + ')" aria-label="Elimina">&times;</button>' : '';
                 return '<span class="pezzo-piede' + (p === ultimoPezzo ? ' ultimo' : '') + '"><span class="pezzo-tipo">' + nome + '</span>' + x + '</span>';
             };

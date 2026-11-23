@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 381 (22 novembre 2026)
+    TESTOGRAFIA — versione 382 (23 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -815,7 +815,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 381]</div>
+    <div id="version-label">[VERSIONE 382]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -993,9 +993,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <div class="modale-sfondo" id="modale-nome-montaggio">
         <div class="modale-contenuto modale-promozione-container">
             <span class="modale-chiudi" onclick="chiudiModaleNomeMontaggio()">&times;</span>
-            <div class="modale-montaggio-titolo">Dai un nome al montaggio</div>
-            <div class="modale-promozione-desc">Sarà il titolo della testografia.</div>
-            <input type="text" id="nome-montaggio-export" class="modale-input" placeholder="Nome del montaggio" autocomplete="off" onkeydown="if (event.key === 'Enter') { event.preventDefault(); confermaNomeMontaggio(); }">
+            <div class="modale-montaggio-titolo">Dai un nome alla ricomposizione</div>
+            <input type="text" id="nome-montaggio-export" class="modale-input" autocomplete="off" onkeydown="if (event.key === 'Enter') { event.preventDefault(); confermaNomeMontaggio(); }">
             <div class="modale-bottoni-row" style="margin-top: 15px;">
                 <button class="btn-modale-bn btn-annulla-modal" onclick="chiudiModaleNomeMontaggio()">Annulla</button>
                 <button class="btn-modale-bn btn-salva-modal" onclick="confermaNomeMontaggio()">Continua</button>
@@ -1672,11 +1671,27 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             return out;
         }
 
+        // le firme dei paragrafi con cui comincia ciascun frammento o intervento: li' niente rientro
+        function firmeInizioPezzi() {
+            const firme = new Set();
+            try {
+                costruisciPezzi().pezzi.forEach(pz => {
+                    const par = impaginaTestoFinale(senzaMarcaTitolo(pz.testo || '')).split('\n\n').map(p => p.trim()).filter(Boolean);
+                    if (!par.length) return;
+                    // versi: almeno tre righe brevi, tutte allineate a sinistra
+                    const versi = par.length >= 3 && par.every(p => p.replace(/⟦[^⟧]*⟧/g, '').length <= 70);
+                    (versi ? par : [par[0]]).forEach(p => firme.add(firmaParagrafo(p)));
+                });
+            } catch (e) {}
+            return firme;
+        }
+
         function disegnaRisultato() {
             const container = document.getElementById('risultato-container');
             const P = paragrafiRisultato();
             if (!P.length) { container.innerHTML = ''; return; }
             const mappa = titoliPerParagrafo(P);
+            const inizi = firmeInizioPezzi();
             let htmlPar = '';
             P.forEach((p, i) => {
                 segmentiParagrafo(p, mappa[i]).forEach((seg, j) => {
@@ -1686,7 +1701,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     if (!seg.raw) return;
                     const t = seg.raw.match(TITOLO_RE);
                     if (t) htmlPar += `<h${+t[1] + 1} class="titolo-ris" data-i="${i}" data-off="${seg.off}">${renderNoteRefsMontaggio(escapeHtmlText(seg.raw.replace(TITOLO_RE, '')))}</h${+t[1] + 1}>`;
-                    else htmlPar += `<p data-i="${i}" data-off="${seg.off}"${seg.titoli.length ? ' class="dopo-titolo"' : ''}>${renderNoteRefsMontaggio(escapeHtmlText(seg.raw))}</p>`;
+                    else htmlPar += `<p data-i="${i}" data-off="${seg.off}"${(seg.titoli.length || (j === 0 && inizi.has(firmaParagrafo(p)))) ? ' class="dopo-titolo"' : ''}>${renderNoteRefsMontaggio(escapeHtmlText(seg.raw))}</p>`;
                 });
             });
             container.innerHTML = `
@@ -4650,10 +4665,11 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             let paragrafiHtml = '';
             // i titoli dell'autore diventano titoli
             let dopoTitolo = true;
-            paragrafiProcessed.map(p => p.replace(MARCA_RE, '<sup class="marca-f">$1</sup>')).forEach(p => {
+            const iniziPezzi = firmeInizioPezzi();
+            paragrafiProcessed.map(p => p.replace(MARCA_RE, '<sup class="marca-f">$1</sup>')).forEach((p, k) => {
                 const t = p.match(TITOLO_RE);
                 if (t) { paragrafiHtml += '<p class="tit' + t[1] + '">' + p.replace(TITOLO_RE, '') + '</p>\n'; dopoTitolo = true; return; }
-                const style = dopoTitolo ? 'text-indent: 0;' : 'text-indent: 1.5em;';
+                const style = (dopoTitolo || iniziPezzi.has(firmaParagrafo(paragrafiRaw[k]))) ? 'text-indent: 0;' : 'text-indent: 1.5em;';
                 dopoTitolo = false;
                 paragrafiHtml += '<p style="' + style + '">' + p + '</p>\n';
             });

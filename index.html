@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 382 (23 novembre 2026)
+    TESTOGRAFIA — versione 383 (23 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -536,6 +536,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         #btn-salva-testo { display: inline-block; background: #000; color: #fff; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-family: var(--font-ui); font-size: 0.8em; font-weight: bold; transition: background 0.2s; text-align: center; border: none; margin-bottom: 5px; width: 100%; max-width: 200px; }
         #btn-salva-testo:disabled { background: #ccc; color: #fff; cursor: not-allowed; }
         #btn-salva-testo:hover:not(:disabled) { background: #333; }
+        #btn-crea-montaggio { display: inline-block; background: #000; color: #fff; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-family: var(--font-ui); font-size: 0.8em; font-weight: bold; transition: background 0.2s; text-align: center; border: none; margin-bottom: 5px; width: 100%; max-width: 200px; }
+        #btn-crea-montaggio:disabled { background: #ccc; color: #fff; cursor: not-allowed; }
+        #btn-crea-montaggio:hover:not(:disabled) { background: #333; }
+        .etichetta-nome-montaggio, .etichetta-nome-montaggio:hover { cursor: default; background: #000; }
 
         .modale-montaggio-titolo { font-family: var(--font-ui); font-size: 0.75em; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #333; margin-bottom: 15px; text-align: center; }
         .modale-bottoni-row { display: flex; flex-direction: row; justify-content: space-between; align-items: center; gap: 10px; width: 100%; }
@@ -815,7 +819,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 382]</div>
+    <div id="version-label">[VERSIONE 383]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -852,7 +856,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         </div>
         <div id="top-bar-right">
             <div class="top-bar-right-center">
-                <button class="btn-carica" onclick="nuovoMontaggioDaZero()">+ Montaggi</button>
+                <button class="btn-carica" onclick="apriModaleNuovoMontaggio()">+ Montaggi</button>
                 <button class="btn-esporta-round" onclick="esportaMontaggio()">esporta</button>
             </div>
             <button class="btn-carica btn-focus btn-centro" data-centro="destra" onclick="alternaCentro('destra')" aria-label="Porta al centro"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"></line><polyline points="6 9 9 12 6 15"></polyline><line x1="2" y1="12" x2="9" y2="12"></line><polyline points="18 9 15 12 18 15"></polyline><line x1="22" y1="12" x2="15" y2="12"></line></svg></button>
@@ -934,13 +938,25 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         </div>
     </div>
 
+    <div class="modale-sfondo" id="modale-nuovo-montaggio">
+        <div class="modale-contenuto">
+            <span class="modale-chiudi" onclick="chiudiModaleNuovoMontaggio()">&times;</span>
+            <div class="input-file-wrapper" style="margin-top: 20px; margin-bottom: 30px;">
+                <span class="custom-file-upload etichetta-nome-montaggio">Nome montaggio</span>
+            </div>
+            <input type="text" id="nome-nuovo-montaggio" class="modale-input" autocomplete="off" oninput="document.getElementById('btn-crea-montaggio').disabled = !this.value.trim();" onkeydown="if (event.key === 'Enter') { event.preventDefault(); confermaNuovoMontaggio(); }">
+            <div class="bottoni-h1-wrapper" style="margin-top: 15px;">
+                <button id="btn-crea-montaggio" onclick="confermaNuovoMontaggio()" disabled>Aggiungi</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modale-sfondo" id="modale-lista-montaggi">
-        <div class="modale-contenuto modale-montaggi-container">
+        <div class="modale-contenuto modale-archivio-container">
             <span class="modale-chiudi" onclick="chiudiModaleMontaggi()">&times;</span>
             <div class="modale-montaggio-titolo">I tuoi montaggi</div>
-            <div class="lista-montaggi-body" id="lista-montaggi-body"><div style="text-align:center; color:#999; font-size:0.8em; padding:15px;">Caricamento...</div></div>
-            
-            <label class="apri-da-file" for="file-progetto">Apri da file</label>
+            <input type="text" class="archivio-search-bar" id="input-cerca-montaggi" placeholder="Cerca per nome..." oninput="filtraMontaggi()">
+            <div class="lista-montaggi-body" id="lista-montaggi-body"></div>
             <input type="file" id="file-progetto" accept=".pdf,.doc,.epub,.md,.montaggio,application/pdf,application/msword,application/epub+zip,text/markdown,application/json" style="display:none;" onchange="apriProgettoDaFile(this)">
         </div>
     </div>
@@ -2717,7 +2733,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             });
         }
 
-        function apriModaleMontaggi() { document.getElementById('modale-lista-montaggi').style.display = 'flex'; caricaListaMontaggi(); }
+        function apriModaleMontaggi() { document.getElementById('modale-lista-montaggi').style.display = 'flex'; document.getElementById('input-cerca-montaggi').value = ''; caricaListaMontaggi(); }
         function chiudiModaleMontaggi() { document.getElementById('modale-lista-montaggi').style.display = 'none'; }
 
         async function caricaListaMontaggi() {
@@ -2726,13 +2742,19 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             try {
                 const { data, error } = await db.from('montaggi').select('id, nome, updated_at').order('updated_at', { ascending: false });
                 if (error) throw error;
-                renderListaMontaggi(data || []);
+                elencoMontaggi = data || [];
+                filtraMontaggi();
             } catch (e) {
                 bodyEl.innerHTML = '<div style="text-align:center; color:#000; font-size:0.75em; padding:15px; line-height:1.5;">Impossibile leggere l’archivio di questo browser.<br>Se stai usando la navigazione anonima, i dati non possono essere salvati.</div>';
                 console.error(e);
             }
         }
 
+        let elencoMontaggi = [];
+        function filtraMontaggi() {
+            const q = (document.getElementById('input-cerca-montaggi').value || '').trim().toLowerCase();
+            renderListaMontaggi(q ? elencoMontaggi.filter(m => (m.nome || '').toLowerCase().includes(q)) : elencoMontaggi);
+        }
         function renderListaMontaggi(montaggi) {
             const bodyEl = document.getElementById('lista-montaggi-body');
             if (montaggi.length === 0) { bodyEl.innerHTML = ''; return; }
@@ -2740,11 +2762,12 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             montaggi.forEach(m => {
                 const isCorrente = (currentMontaggioId && String(m.id) === String(currentMontaggioId));
                 html += `
-                    <div class="montaggio-item${isCorrente ? ' corrente' : ''}" data-id="${escapeHtmlText(m.id)}" data-nome="${escapeHtmlText(m.nome)}">
+                    <div class="montaggio-item${isCorrente ? ' corrente' : ''}" data-id="${escapeHtmlText(m.id)}" data-nome="${escapeHtmlText(m.nome)}" style="margin-bottom: 8px;">
                         <div class="montaggio-item-info">
                             <div class="montaggio-item-nome">${escapeHtmlText(m.nome)}</div>
                             <div class="montaggio-item-data">${formatDataRelativa(m.updated_at)}</div>
                         </div>
+                        <button class="btn-carica montaggio-item-apri" style="margin-right: 5px;">Apri</button>
                         <button class="montaggio-item-del" data-tooltip="RIMUOVI">&times;</button>
                     </div>
                 `;
@@ -2757,7 +2780,8 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     if (e.target.closest('.montaggio-item-del')) {
                         e.stopPropagation();
                         eliminaMontaggio(id, nome);
-                    } else {
+                    } else if (e.target.closest('.montaggio-item-apri')) {
+                        e.stopPropagation();
                         apriMontaggio(id);
                     }
                 });
@@ -2845,7 +2869,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         async function apriMontaggio(id) {
             try {
                 if (currentMontaggioId && saveTimeout) { clearTimeout(saveTimeout); saveTimeout = null; await salvaMontaggioArchivio(); }
-                if (currentMontaggioId && String(currentMontaggioId) !== String(id) && !montaggioHaContenuto()) {
+                if (currentMontaggioId && String(currentMontaggioId) !== String(id) && !montaggioHaContenuto() && (!currentMontaggioNome || currentMontaggioNome === NOME_PROVVISORIO)) {
                     try { await db.from('montaggi').delete().eq('id', currentMontaggioId); } catch (e) {}
                 }
                 const { data, error } = await db.from('montaggi').select('*').eq('id', id).single();
@@ -2887,12 +2911,24 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         function montaggioHaContenuto() {
             return !!(stato.testoBase || stato.operandoSinistro || (stato.catena && stato.catena.length) || (stato.destriInAttesa && stato.destriInAttesa.length) || (stato.interventoGlobale && stato.interventoGlobale.trim()));
         }
-        // «+ Montaggi»: un montaggio nuovo, vuoto. Quello in corso resta salvato fra «I tuoi montaggi»;
-        // se il tavolo e' gia' vuoto non serve crearne un altro.
-        async function nuovoMontaggioDaZero() {
-            if (currentMontaggioId && !montaggioHaContenuto()) { cambiaModalitaDestra('montaggio'); return; }
+        // «+ Montaggi»: si riparte da un montaggio vuoto, che ha subito il suo nome.
+        // Quello che c'era resta fra «I tuoi montaggi»; se era vuoto e senza nome, non resta nell'elenco.
+        function apriModaleNuovoMontaggio() {
+            const campo = document.getElementById('nome-nuovo-montaggio');
+            campo.value = ''; document.getElementById('btn-crea-montaggio').disabled = true;
+            document.getElementById('modale-nuovo-montaggio').style.display = 'flex';
+            setTimeout(() => campo.focus(), 50);
+        }
+        function chiudiModaleNuovoMontaggio() { document.getElementById('modale-nuovo-montaggio').style.display = 'none'; }
+        async function confermaNuovoMontaggio() {
+            const nome = document.getElementById('nome-nuovo-montaggio').value.trim();
+            if (!nome) return;
             if (saveTimeout) { clearTimeout(saveTimeout); saveTimeout = null; await salvaMontaggioArchivio(); }
-            await creaNuovoMontaggio(NOME_PROVVISORIO, statoVuoto());
+            const vecchio = currentMontaggioId;
+            const vuotoSenzaNome = vecchio && !montaggioHaContenuto() && (!currentMontaggioNome || currentMontaggioNome === NOME_PROVVISORIO);
+            chiudiModaleNuovoMontaggio();
+            await creaNuovoMontaggio(nome, statoVuoto());
+            if (vuotoSenzaNome) { try { await db.from('montaggi').delete().eq('id', vecchio); } catch (e) {} }
             cambiaModalitaDestra('montaggio');
         }
 
@@ -5243,7 +5279,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         // ---- Il pulsante "indietro" del browser: torna al passo precedente dentro Testografia ----
         // Ogni passo (un testo aperto o chiuso nel Leggio, Montaggio/Risultato, una finestra aperta) e' una pagina della cronologia.
         // "Indietro" chiude la finestra aperta, oppure riporta il testo e la vista di prima; finiti i passi, si esce dal sito come sempre.
-        const FINESTRE_CRONOLOGIA = ['modale-archivio', 'modale-lista-montaggi', 'modale-carica', 'modale-biblio', 'modale-promozione', 'modale-nome-montaggio', 'modale-video'];
+        const FINESTRE_CRONOLOGIA = ['modale-archivio', 'modale-lista-montaggi', 'modale-nuovo-montaggio', 'modale-carica', 'modale-biblio', 'modale-promozione', 'modale-nome-montaggio', 'modale-video'];
         let inCronologia = false, ignoraPopstate = false;
         function fotoCronologia() { return { tg: 1, testo: testoInLettura ? String(testoInLettura.id) : null, modo: modalitaDestra }; }
         function segnaPassaggio() {

@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 383 (23 novembre 2026)
+    TESTOGRAFIA — versione 384 (23 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -819,7 +819,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 383]</div>
+    <div id="version-label">[VERSIONE 384]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -957,6 +957,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             <div class="modale-montaggio-titolo">I tuoi montaggi</div>
             <input type="text" class="archivio-search-bar" id="input-cerca-montaggi" placeholder="Cerca per nome..." oninput="filtraMontaggi()">
             <div class="lista-montaggi-body" id="lista-montaggi-body"></div>
+            <label class="apri-da-file" for="file-progetto">Apri da file</label>
             <input type="file" id="file-progetto" accept=".pdf,.doc,.epub,.md,.montaggio,application/pdf,application/msword,application/epub+zip,text/markdown,application/json" style="display:none;" onchange="apriProgettoDaFile(this)">
         </div>
     </div>

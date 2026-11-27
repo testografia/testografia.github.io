@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 386 (26 novembre 2026)
+    TESTOGRAFIA — versione 387 (27 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -831,7 +831,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 386]</div>
+    <div id="version-label">[VERSIONE 387]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -3620,6 +3620,15 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 t.noteByPage = buildNoteMap(t.paragrafi || []);
                 return t;
             });
+            // dati compilati a mano con una versione precedente: titolo e autore dell'Archivio si allineano
+            for (const t of testiDatabase) {
+                const b = t.biblio;
+                if (!b || !b.manuale || !String(b.titolo || '').trim()) continue;
+                const tit = String(b.titolo).trim(), aut = String(b.autore || '').trim();
+                if (t.titolo === tit && (t.autore || '') === aut) continue;
+                t.titolo = tit; t.autore = aut;
+                await db.from('testi').update({ titolo: tit, autore: aut }).eq('id', t.id);
+            }
             
             if (ricaricaMontaggio) await caricaMontaggioCorrente();
             if (testoInLettura) testoInLettura = testiDatabase.find(x => String(x.id) === String(testoInLettura.id)) || null;
@@ -4653,9 +4662,13 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             const f = leggiCampiBiblio();
             if (!f.titolo) { document.getElementById('bib-titolo').focus(); return; }
             t.biblio = Object.assign({}, f, { versione: 1, manuale: true });
-            const { error } = await db.from('testi').update({ biblio: t.biblio }).eq('id', t.id);
+            // titolo e autore compilati a mano diventano anche quelli dell'Archivio, del Leggio e del Percorso
+            const { error } = await db.from('testi').update({ biblio: t.biblio, titolo: f.titolo, autore: f.autore }).eq('id', t.id);
             if (error) { mostraAvviso('Impossibile salvare i dati: ' + error.message); return; }
+            t.titolo = f.titolo; t.autore = f.autore;
             chiudiModaleBiblio();
+            if (document.getElementById('modale-archivio').style.display === 'flex') filtraArchivio();
+            if (testoInLettura && String(testoInLettura.id) === String(t.id) && !t.pdf_url) disegnaLeggio();
         }
 
         // un testo ricomposto riaperto come base: e' il testo di partenza (anche nei montaggi salvati prima, riconoscibili dalla pagina '-')

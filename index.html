@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 385 (23 novembre 2026)
+    TESTOGRAFIA — versione 386 (26 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -611,6 +611,18 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         .lista-archivio-body { max-height: 45vh; overflow-y: auto; overflow-x: hidden; margin-bottom: 15px; padding-right: 5px; text-align: left; }
 
         .archivio-section-title.a-destra { text-align: right; }
+        .schede-archivio { display: flex; justify-content: center; gap: 22px; }
+        .scheda-archivio { cursor: pointer; color: #aaa; padding-bottom: 3px; border-bottom: 1px solid transparent; transition: color 0.15s; }
+        .scheda-archivio:hover { color: #000; }
+        .scheda-archivio.attiva { color: #000; border-bottom-color: #000; cursor: default; }
+        .comandi-percorso { display: none; }
+        .comandi-percorso.visibile { display: flex; }
+        .percorso-riga { display: flex; gap: 10px; padding: 7px 5px; border-bottom: 1px solid rgba(0,0,0,0.06); font-family: var(--font-ui); font-size: 0.8em; line-height: 1.45; color: #000; }
+        .percorso-ora { flex: 0 0 38px; color: #888; }
+        .percorso-testo { flex: 1; min-width: 0; text-align: justify; overflow-wrap: anywhere; }
+        .percorso-punto.apribile { cursor: pointer; border-bottom: 1px solid transparent; }
+        .percorso-punto.apribile:hover { border-bottom-color: #000; }
+        .percorso-azione { color: #888; }
         .archivio-section-title {
             font-family: var(--font-ui);
             font-size: 0.7em;
@@ -819,7 +831,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 385]</div>
+    <div id="version-label">[VERSIONE 386]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -914,9 +926,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <div class="modale-sfondo" id="modale-archivio">
         <div class="modale-contenuto modale-archivio-container">
             <span class="modale-chiudi" onclick="chiudiArchivio()">&times;</span>
-            <div class="modale-montaggio-titolo">Archivio Testi</div>
+            <div class="modale-montaggio-titolo schede-archivio"><span class="scheda-archivio attiva" id="scheda-testi" onclick="mostraSchedaArchivio('testi')">Archivio Testi</span><span class="scheda-archivio" id="scheda-percorso" onclick="mostraSchedaArchivio('percorso')">Percorso</span></div>
             <input type="text" class="archivio-search-bar" id="input-cerca-archivio" placeholder="Cerca per titolo o autore..." oninput="filtraArchivio()">
             <div class="lista-archivio-body" id="lista-archivio-body"></div>
+            <div class="modale-bottoni-row comandi-percorso" id="comandi-percorso">
+                <button class="btn-modale-bn btn-annulla-modal" onclick="esportaPercorso()">Esporta percorso</button>
+                <button class="btn-modale-bn btn-annulla-modal" onclick="cancellaPercorso()">Cancella percorso</button>
+            </div>
         </div>
     </div>
 
@@ -1197,16 +1213,18 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 if (aperto) return aperto;
                 aperto = new Promise((resolve, reject) => {
                     if (!window.indexedDB) { reject(new Error('Questo browser non permette di salvare dati in locale.')); return; }
-                    const rich = indexedDB.open('testografia', 1);
+                    // versione 2: si aggiunge il Percorso; testi, montaggi e file gia' salvati restano come sono
+                    const rich = indexedDB.open('testografia', 2);
                     rich.onupgradeneeded = () => {
                         const d = rich.result;
-                        d.createObjectStore('testi', { keyPath: 'id', autoIncrement: true });
-                        const par = d.createObjectStore('paragrafi', { keyPath: 'id', autoIncrement: true });
-                        par.createIndex('testo_id', 'testo_id');
-                        d.createObjectStore('montaggi', { keyPath: 'id', autoIncrement: true });
-                        d.createObjectStore('file');
+                        const c = n => d.objectStoreNames.contains(n);
+                        if (!c('testi')) d.createObjectStore('testi', { keyPath: 'id', autoIncrement: true });
+                        if (!c('paragrafi')) { const par = d.createObjectStore('paragrafi', { keyPath: 'id', autoIncrement: true }); par.createIndex('testo_id', 'testo_id'); }
+                        if (!c('montaggi')) d.createObjectStore('montaggi', { keyPath: 'id', autoIncrement: true });
+                        if (!c('file')) d.createObjectStore('file');
+                        if (!c('percorso')) d.createObjectStore('percorso', { keyPath: 'id', autoIncrement: true });
                     };
-                    rich.onsuccess = () => resolve(rich.result);
+                    rich.onsuccess = () => { const d = rich.result; d.onversionchange = () => { d.close(); aperto = null; }; resolve(d); };
                     rich.onerror = () => reject(rich.error);
                     rich.onblocked = () => reject(new Error("L'archivio e' in uso in un'altra scheda: chiudila e riprova."));
                 });
@@ -1914,7 +1932,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             document.getElementById('modale-archivio').style.display = 'flex';
             document.getElementById('input-cerca-archivio').value = '';
             ricercaArchivio = '';
-            filtraArchivio();
+            mostraSchedaArchivio('testi');
         }
         function chiudiArchivio() { document.getElementById('modale-archivio').style.display = 'none'; }
         
@@ -1965,6 +1983,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
 
         function filtraArchivio() {
             ricercaArchivio = document.getElementById('input-cerca-archivio').value.toLowerCase().trim();
+            if (schedaArchivio === 'percorso') { disegnaPercorso(); return; }
             const container = document.getElementById('lista-archivio-body');
             
             let originali = testiDatabase.filter(t => t.tipo === 'originale' || !t.tipo);
@@ -2019,6 +2038,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         function apriTesto(id) {
             const t = testiDatabase.find(x => String(x.id) === String(id));
             if (!t) return;
+            if (!testoInLettura || String(testoInLettura.id) !== String(t.id)) avviaPassaggio(puntoUscita(), t);
             salvaPosizioneLettura();
             salvataggioPosizioneAttivo = false;
             testoInLettura = t;
@@ -2168,6 +2188,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     if (testoInLettura !== testo) return;
                     ripristinaPosizione(posIniziale);
                     salvataggioPosizioneAttivo = true;
+                    completaPassaggio();
                 });
             }
         }
@@ -2691,6 +2712,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                         if (token === pdfRenderToken) {
                             ripristinaPosizione(posDaRiprendere);
                             salvataggioPosizioneAttivo = true;
+                            completaPassaggio();
                         }
                     });
                 });
@@ -2703,7 +2725,179 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             }
         }
 
-        function chiudiLeggio() {
+        // ---- Percorso: i passaggi da un testo all'altro (primo livello della lettura come montaggio) ----
+        // Si registrano da soli, senza chiedere nulla al lettore: da quale testo e pagina si esce, in quale testo e pagina si entra, a che ora.
+        // Restano nel browser, come testi e montaggi; si vedono nell'Archivio, scheda «Percorso».
+        let passaggioInAttesa = null;
+        let schedaArchivio = 'testi';
+        let percorsoCache = [];
+
+        // pagina (o sezione) che si sta leggendo ora nel Leggio
+        function paginaCorrenteLeggio() {
+            const pos = leggiPosizioneCorrente();
+            if (pos.tipo === 'pdf') return { pos: pos, pagina: String(pos.pagina), sezione: '' };
+            const riga = document.getElementById('panel-left').getBoundingClientRect().top + 40;
+            const foglio = document.querySelector('#testi-container .testo-in-lettura');
+            let pagina = '', sezione = '';
+            if (foglio) {
+                const segni = foglio.querySelectorAll('.segnapagina');
+                if (segni.length) {
+                    pagina = '1';
+                    for (const sg of segni) {
+                        if (sg.getBoundingClientRect().top > riga) break;
+                        const m = sg.innerText.match(/\d+/); if (m) pagina = m[0];
+                    }
+                } else {
+                    for (const ts of foglio.querySelectorAll('.titolo-sezione')) {
+                        if (ts.getBoundingClientRect().top > riga) break;
+                        sezione = ts.innerText.trim().substring(0, 80);
+                    }
+                }
+            }
+            return { pos: pos, pagina: pagina, sezione: sezione };
+        }
+
+        function datiDaPosizione(pos) {
+            return { pos: pos || null, pagina: (pos && pos.tipo === 'pdf') ? String(pos.pagina) : '', sezione: '' };
+        }
+
+        function puntoDi(t, dati) {
+            return { testo_id: t.id, titolo: t.titolo || '', autore: t.autore || '', tipo: t.tipo || 'originale', pagina: dati.pagina || '', sezione: dati.sezione || '', pos: dati.pos || null };
+        }
+
+        // dove si lascia il testo aperto ora
+        function puntoUscita() {
+            if (!testoInLettura) return null;
+            const dati = salvataggioPosizioneAttivo ? paginaCorrenteLeggio() : datiDaPosizione(posizioneSalvata(testoInLettura.id));
+            return puntoDi(testoInLettura, dati);
+        }
+
+        async function scriviPassaggio(voce) {
+            voce.ora = voce.ora || new Date().toISOString();
+            const { error } = await db.from('percorso').insert(voce);
+            if (error) console.warn('Percorso non registrato:', error.message);
+            if (schedaArchivio === 'percorso' && document.getElementById('modale-archivio').style.display === 'flex') disegnaPercorso();
+        }
+
+        // il passaggio si scrive quando il testo nuovo e' arrivato al punto di lettura (cosi' si conosce la pagina d'ingresso)
+        function avviaPassaggio(da, t) {
+            scriviPassaggioInAttesa();
+            passaggioInAttesa = { testoId: String(t.id), voce: { ora: new Date().toISOString(), da: da, a: puntoDi(t, datiDaPosizione(posizioneSalvata(t.id))) } };
+        }
+        function completaPassaggio() {
+            const p = passaggioInAttesa;
+            if (!p || !testoInLettura || String(testoInLettura.id) !== p.testoId) return;
+            const dati = paginaCorrenteLeggio();
+            p.voce.a.pagina = dati.pagina; p.voce.a.sezione = dati.sezione; p.voce.a.pos = dati.pos;
+            scriviPassaggioInAttesa();
+        }
+        function scriviPassaggioInAttesa() {
+            const p = passaggioInAttesa;
+            passaggioInAttesa = null;
+            if (p) scriviPassaggio(p.voce);
+        }
+
+        function mostraSchedaArchivio(nome) {
+            schedaArchivio = nome;
+            document.getElementById('scheda-testi').classList.toggle('attiva', nome === 'testi');
+            document.getElementById('scheda-percorso').classList.toggle('attiva', nome === 'percorso');
+            document.getElementById('comandi-percorso').classList.toggle('visibile', nome === 'percorso');
+            filtraArchivio();
+        }
+
+        function etichettaPunto(pt) {
+            if (!pt) return '';
+            let h = '<em>' + escapeHtmlText(pt.titolo || 'Testo senza titolo') + '</em>';
+            if (pt.pagina) h += ', p. ' + escapeHtmlText(pt.pagina);
+            else if (pt.sezione) h += ', «' + escapeHtmlText(pt.sezione) + '»';
+            return h;
+        }
+        function htmlPunto(v, lato) {
+            const pt = v[lato];
+            const esiste = testiDatabase.some(x => String(x.id) === String(pt.testo_id));
+            return '<span class="percorso-punto' + (esiste ? ' apribile' : '') + '"' + (esiste ? ' onclick="riapriPunto(' + Number(v.id) + ', \'' + lato + '\')"' : '') + '>' + etichettaPunto(pt) + '</span>';
+        }
+        function testoPassaggio(v) {
+            if (v.da && v.a) return htmlPunto(v, 'da') + ' &rarr; ' + htmlPunto(v, 'a');
+            if (v.a) return '<span class="percorso-azione">apre</span> ' + htmlPunto(v, 'a');
+            if (v.da) return '<span class="percorso-azione">chiude</span> ' + htmlPunto(v, 'da');
+            return '';
+        }
+        function giornoDi(iso) { return new Date(iso).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }); }
+        function oraDi(iso) { return new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); }
+
+        async function leggiPercorso() {
+            const { data, error } = await db.from('percorso').select('*').order('ora', { ascending: true });
+            percorsoCache = error ? [] : (data || []);
+            return percorsoCache;
+        }
+
+        async function disegnaPercorso() {
+            const container = document.getElementById('lista-archivio-body');
+            const voci = (await leggiPercorso()).filter(v => {
+                if (!ricercaArchivio) return true;
+                return [v.da, v.a].some(pt => pt && ((pt.titolo || '').toLowerCase().includes(ricercaArchivio) || (pt.autore || '').toLowerCase().includes(ricercaArchivio)));
+            });
+            if (schedaArchivio !== 'percorso') return;
+            if (!voci.length) { container.innerHTML = '<div style="text-align:center; color:#999; font-style:italic; padding:15px;">Nessun passaggio.</div>'; return; }
+            // i giorni dal piu' recente; dentro il giorno, i passaggi nell'ordine in cui sono avvenuti
+            const giorni = [];
+            voci.forEach(v => { const g = giornoDi(v.ora); if (!giorni.length || giorni[giorni.length - 1].g !== g) giorni.push({ g: g, voci: [] }); giorni[giorni.length - 1].voci.push(v); });
+            container.innerHTML = giorni.reverse().map(gi => '<div class="archivio-section-title">' + escapeHtmlText(gi.g) + '</div>' +
+                gi.voci.map(v => '<div class="percorso-riga"><span class="percorso-ora">' + oraDi(v.ora) + '</span><span class="percorso-testo">' + testoPassaggio(v) + '</span></div>').join('')).join('');
+        }
+
+        // un clic riapre il testo nel punto del passaggio
+        function riapriPunto(idVoce, lato) {
+            const v = percorsoCache.find(x => Number(x.id) === Number(idVoce));
+            const pt = v && v[lato];
+            if (!pt || !testiDatabase.some(x => String(x.id) === String(pt.testo_id))) return;
+            if (testoInLettura && String(testoInLettura.id) === String(pt.testo_id)) { chiudiArchivio(); if (pt.pos) ripristinaPosizione(pt.pos); return; }
+            if (pt.pos) { try { localStorage.setItem(CHIAVE_POSIZIONE + pt.testo_id, JSON.stringify(pt.pos)); } catch (e) {} }
+            apriDaArchivio(pt.testo_id);
+        }
+
+        function cancellaPercorso() {
+            mostraConferma('Cancellare tutto il percorso?', async () => {
+                await db.from('percorso').delete();
+                disegnaPercorso();
+            });
+        }
+
+        // Esporta: un documento con i passaggi e i testi letti (si apre con Word); i dati restano anche in forma leggibile da un programma
+        async function esportaPercorso() {
+            const voci = await leggiPercorso();
+            if (!voci.length) return;
+            const testi = [], visti = {};
+            voci.forEach(v => [v.da, v.a].forEach(pt => {
+                if (!pt || visti[pt.testo_id]) return;
+                visti[pt.testo_id] = true;
+                testi.push(pt);
+            }));
+            const primo = giornoDi(voci[0].ora), ultimo = giornoDi(voci[voci.length - 1].ora);
+            let corpo = '<h1>Percorso di lettura</h1><p class="author">' + escapeHtmlText(primo === ultimo ? primo : primo + ' – ' + ultimo) + '</p>';
+            let g = '';
+            voci.forEach(v => {
+                const gv = giornoDi(v.ora);
+                if (gv !== g) { g = gv; corpo += '<p class="h">' + escapeHtmlText(g) + '</p>'; }
+                corpo += '<p class="riga">' + oraDi(v.ora) + ' &nbsp; ' + testoPassaggio(v).replace(/<span[^>]*>|<\/span>/g, '') + '</p>';
+            });
+            corpo += '<p class="h">Testi</p>' + testi.map(pt => {
+                const f = fonteDi({ fonte: { testoId: pt.testo_id, titolo: pt.titolo, autore: pt.autore, tipo: pt.tipo } });
+                return '<p class="bib">' + voceBibliografia(f).html + (f.tipo === 'ricomposto' ? ' (ricomposto)' : '') + '</p>';
+            }).join('');
+            const dati = JSON.stringify({ testografia: 'percorso', versione: 1, passaggi: voci.map(v => ({ ora: v.ora, da: v.da, a: v.a })) });
+            const stile = '@page WordSection1 { size: 595.3pt 841.9pt; margin: 70.85pt 56.7pt 85.05pt 56.7pt; } div.WordSection1 { page: WordSection1; } body { font-family: Garamond, "EB Garamond", serif; font-size: 12pt; line-height: 1.5; text-align: justify; color: #1a1a1a; } h1 { font-size: 20pt; text-align: center; margin: 0 0 0.3em 0; font-weight: normal; letter-spacing: 0.05em; } .author { font-size: 11pt; text-align: center; font-style: italic; color: #555; margin: 0 0 2em 0; } p { margin: 0; text-align: justify; } p.h { font-weight: bold; margin: 14pt 0 6pt 0; } p.riga { padding-left: 46pt; text-indent: -46pt; margin: 0 0 3pt 0; } p.bib { padding-left: 18pt; text-indent: -18pt; margin: 0 0 6pt 0; }';
+            const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Percorso di lettura</title><style>' + stile + '</style></head><body><div class="WordSection1">' + corpo + '</div><!-- testografia-percorso:' + btoa(unescape(encodeURIComponent(dati))) + ' --></body></html>';
+            const blob = new Blob(['﻿', html], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const oggi = new Date(), dd = n => String(n).padStart(2, '0');
+            const a = document.createElement('a'); a.href = url; a.download = 'Percorso di lettura ' + oggi.getFullYear() + '-' + dd(oggi.getMonth() + 1) + '-' + dd(oggi.getDate()) + '.doc';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+        }
+
+        function chiudiLeggio(senzaPercorso) {
+            if (testoInLettura && senzaPercorso !== true) { scriviPassaggioInAttesa(); scriviPassaggio({ da: puntoUscita(), a: null }); }
             salvaPosizioneLettura();
             salvataggioPosizioneAttivo = false;
             testoInLettura = null;
@@ -2724,7 +2918,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     if (pdfDaEliminare && pdfDaEliminare.indexOf('idb:') === 0) { try { await db.storage.from('pdfs').remove([pdfDaEliminare.substring(4)]); } catch (e) {} }
                     
                     if (testoInLettura && String(testoInLettura.id) === String(idTesto)) {
-                        chiudiLeggio();
+                        chiudiLeggio(true);
                     }
                     
                     if (stato.testiImpiegati) {

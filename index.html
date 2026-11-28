@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 391 (27 novembre 2026)
+    TESTOGRAFIA — versione 394 (28 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -182,6 +182,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         #top-bar-right { flex-grow: 1; min-width: 350px; display: flex; align-items: center; justify-content: space-between; padding: 0; background-color: var(--color-sky); box-sizing: border-box; gap: 0; position: relative; }
         /* a sinistra della barra di destra, simmetrico allo schermo del video: uno scaffale di libri */
         .scaffale-wrapper { flex: 0 0 74px; height: 36px; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+        .scaffale-wrapper svg { margin-left: 18px; }
 
         .top-bar-right-center { display: flex; align-items: center; justify-content: center; gap: 31px; flex: 1 1 auto; min-width: 0; }
 
@@ -620,7 +621,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         .comandi-percorso { display: none; }
         .comandi-percorso.visibile { display: flex; }
         .percorso-riga { display: flex; gap: 10px; padding: 7px 5px; border-bottom: 1px solid rgba(0,0,0,0.06); font-family: var(--font-ui); font-size: 0.8em; line-height: 1.45; color: #000; }
-        .percorso-ora { flex: 0 0 38px; color: #888; }
+        .percorso-ora { flex: 0 0 52px; color: #888; display: flex; align-items: flex-start; }
+        .percorso-num { display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border: 1px solid #000; border-radius: 50%; font-size: 0.82em; font-weight: 600; color: #000; background: #fff; box-sizing: border-box; }
+        .percorso-incipit { font-style: italic; color: #555; }
         .percorso-testo { flex: 1; min-width: 0; text-align: justify; overflow-wrap: anywhere; }
         .percorso-punto.apribile { cursor: pointer; border-bottom: 1px solid transparent; }
         .percorso-punto.apribile:hover { border-bottom-color: #000; }
@@ -833,7 +836,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 391]</div>
+    <div id="version-label">[VERSIONE 394]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -842,14 +845,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <div id="top-bar">
         <div id="top-bar-left">
             <div class="logo-wrapper" id="logo-container" onclick="if (videoDisponibile) apriVideo()">
-                <svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-                    <circle cx="50" cy="20" r="16" fill="#ffffff"/>
-                    <path d="M 50 36 A 16 16 0 0 1 50 4" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/>
-                    <line x1="50" y1="4" x2="50" y2="36" stroke="#000" stroke-width="0.9" stroke-opacity="1" stroke-linecap="round"/>
-                    <text x="42" y="19" font-family="'Montserrat', sans-serif" font-weight="300" font-size="7.5" fill="#000" text-anchor="middle">più</text>
-                    <line x1="34.51" y1="24" x2="50" y2="24" stroke="#000" stroke-width="0.9" stroke-opacity="1" stroke-linecap="round"/>
-                    <text x="53" y="20" font-family="'Montserrat', sans-serif" font-weight="300" font-size="7.5" fill="#000" text-anchor="middle" transform="rotate(90 53 20)">tutto</text>
-                </svg>
+                <svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="50" cy="20" r="16" fill="#f0f0f0"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 1 50 4 Z" fill="#d6d6d6"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 0 50 36 Z" fill="#bdbdbd"/><path d="M 50 4 A 16 16 0 1 0 56.76 34.50" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><line x1="34.0" y1="24" x2="50" y2="24" stroke="#000" stroke-width="0.9"/><line x1="50" y1="10.90" x2="50" y2="36" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><text x="42" y="19" font-family="'Montserrat', sans-serif" font-weight="300" font-size="7.5" fill="#000" text-anchor="middle">più</text><text x="53" y="20" font-family="'Montserrat', sans-serif" font-weight="300" font-size="7.5" fill="#000" text-anchor="middle" transform="rotate(90 53 20)">tutto</text></svg>
                 <!-- con il video disponibile, al posto del logo c'e' uno schermo: cliccandolo parte il video -->
                 <svg class="occhio-video" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" width="24" height="24" role="img" aria-label="Guarda il video">
                     <rect x="5" y="8" width="30" height="20" rx="2" fill="#ffffff" stroke="#000" stroke-width="2.2"/>
@@ -2815,6 +2811,8 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             document.getElementById('scheda-testi').classList.toggle('attiva', nome === 'testi');
             document.getElementById('scheda-percorso').classList.toggle('attiva', nome === 'percorso');
             document.getElementById('comandi-percorso').classList.toggle('visibile', nome === 'percorso');
+            document.getElementById('input-cerca-archivio').style.display = nome === 'percorso' ? 'none' : '';
+            if (nome === 'percorso') { document.getElementById('input-cerca-archivio').value = ''; ricercaArchivio = ''; }
             filtraArchivio();
         }
 
@@ -2832,12 +2830,26 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         }
         function testoPassaggio(v) {
             if (v.da && v.a) return htmlPunto(v, 'da') + ' &rarr; ' + htmlPunto(v, 'a');
-            if (v.a) return '<span class="percorso-azione">apre</span> ' + htmlPunto(v, 'a');
-            if (v.da) return '<span class="percorso-azione">chiude</span> ' + htmlPunto(v, 'da');
+            if (v.a) return htmlPunto(v, 'a');     // l'etichetta Incipit dice gia' che il testo si apre
+            if (v.da) return htmlPunto(v, 'da');   // e Explicit che si chiude
             return '';
         }
         function giornoDi(iso) { return new Date(iso).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }); }
         function oraDi(iso) { return new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); }
+        // al posto dell'ora: Incipit quando si apre un testo dal Leggio vuoto, poi 1, 2, 3... per i passaggi, Explicit quando si chiude.
+        // La numerazione riparte a ogni Incipit e a ogni nuovo giorno; si calcola su tutto il percorso, cosi' la ricerca non la cambia.
+        function etichettePercorso(voci) {
+            const et = {}; let n = 0, g = '';
+            voci.forEach(v => {
+                const gv = giornoDi(v.ora);
+                if (gv !== g) { g = gv; n = 0; }
+                if (!v.da && v.a) { et[v.id] = 'Incipit'; n = 0; }
+                else if (v.da && !v.a) et[v.id] = 'Explicit';
+                else et[v.id] = String(++n);
+            });
+            return et;
+        }
+        function htmlEtichetta(e) { return /^\d+$/.test(e) ? '<span class="percorso-num">' + e + '</span>' : '<span class="percorso-incipit">' + e + '</span>'; }
 
         async function leggiPercorso() {
             const { data, error } = await db.from('percorso').select('*').order('ora', { ascending: true });
@@ -2847,7 +2859,9 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
 
         async function disegnaPercorso() {
             const container = document.getElementById('lista-archivio-body');
-            const voci = (await leggiPercorso()).filter(v => {
+            const tutte = await leggiPercorso();
+            const et = etichettePercorso(tutte);
+            const voci = tutte.filter(v => {
                 if (!ricercaArchivio) return true;
                 return [v.da, v.a].some(pt => pt && ((pt.titolo || '').toLowerCase().includes(ricercaArchivio) || (pt.autore || '').toLowerCase().includes(ricercaArchivio)));
             });
@@ -2857,7 +2871,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             const giorni = [];
             voci.forEach(v => { const g = giornoDi(v.ora); if (!giorni.length || giorni[giorni.length - 1].g !== g) giorni.push({ g: g, voci: [] }); giorni[giorni.length - 1].voci.push(v); });
             container.innerHTML = giorni.reverse().map(gi => '<div class="archivio-section-title">' + escapeHtmlText(gi.g) + '</div>' +
-                gi.voci.map(v => '<div class="percorso-riga"><span class="percorso-ora">' + oraDi(v.ora) + '</span><span class="percorso-testo">' + testoPassaggio(v) + '</span></div>').join('')).join('');
+                gi.voci.map(v => '<div class="percorso-riga"><span class="percorso-ora">' + htmlEtichetta(et[v.id]) + '</span><span class="percorso-testo">' + testoPassaggio(v) + '</span></div>').join('')).join('');
         }
 
         // un clic riapre il testo nel punto del passaggio
@@ -2890,10 +2904,11 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             const primo = giornoDi(voci[0].ora), ultimo = giornoDi(voci[voci.length - 1].ora);
             let corpo = '<h1>Percorso di lettura</h1><p class="author">' + escapeHtmlText(primo === ultimo ? primo : primo + ' – ' + ultimo) + '</p>';
             let g = '';
+            const et = etichettePercorso(voci);
             voci.forEach(v => {
                 const gv = giornoDi(v.ora);
                 if (gv !== g) { g = gv; corpo += '<p class="h">' + escapeHtmlText(g) + '</p>'; }
-                corpo += '<p class="riga">' + oraDi(v.ora) + ' &nbsp; ' + testoPassaggio(v).replace(/<span[^>]*>|<\/span>/g, '') + '</p>';
+                corpo += '<p class="riga">' + et[v.id] + ' &nbsp; ' + testoPassaggio(v).replace(/<span[^>]*>|<\/span>/g, '') + '</p>';
             });
             corpo += '<p class="h">Testi</p>' + testi.map(pt => {
                 const f = fonteDi({ fonte: { testoId: pt.testo_id, titolo: pt.titolo, autore: pt.autore, tipo: pt.tipo } });
@@ -5060,7 +5075,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
     </style>
 </head>
 <body>
-    <div class="logo-export" aria-hidden="true"><svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="50" cy="20" r="16" fill="#ffffff"/><path d="M 50 36 A 16 16 0 0 1 50 4" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><line x1="50" y1="4" x2="50" y2="36" stroke="#000" stroke-width="0.9" stroke-opacity="1" stroke-linecap="round"/><text x="42" y="19" font-family="'Montserrat', sans-serif" font-weight="300" font-size="7.5" fill="#000" text-anchor="middle">più</text><line x1="34.51" y1="24" x2="50" y2="24" stroke="#000" stroke-width="0.9" stroke-opacity="1" stroke-linecap="round"/><text x="53" y="20" font-family="'Montserrat', sans-serif" font-weight="300" font-size="7.5" fill="#000" text-anchor="middle" transform="rotate(90 53 20)">tutto</text></svg></div>
+    <div class="logo-export" aria-hidden="true"><svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="50" cy="20" r="16" fill="#f0f0f0"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 1 50 4 Z" fill="#d6d6d6"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 0 50 36 Z" fill="#bdbdbd"/><path d="M 50 4 A 16 16 0 1 0 56.76 34.50" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><line x1="34.0" y1="24" x2="50" y2="24" stroke="#000" stroke-width="0.9"/><line x1="50" y1="10.90" x2="50" y2="36" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><text x="42" y="19" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle">più</text><text x="53" y="20" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle" transform="rotate(90 53 20)">tutto</text></svg></div>
     <div class="barra-documenti" id="barra-documenti">
         <button class="tab-doc" data-doc="fonti" onclick="mostraDocumento('fonti')">Fonti</button>
         <button class="tab-doc" data-doc="sequenza" onclick="mostraDocumento('sequenza')">Montaggio</button>
@@ -5090,7 +5105,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         const AUTORI_FONTI = ${autoriJson};
         const TIPI_DOC = { testo: 'Ricomposizione', sequenza: 'Montaggio', fonti: 'Fonti' };
         const MOTTO = 'LEGGI SCRIVI USA IL TESTO';
-        const LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="32 2 36 36" width="60" height="60"><path d="M 50 36 A 16 16 0 0 1 50 4" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><line x1="50" y1="4" x2="50" y2="36" stroke="#000" stroke-width="0.9" stroke-linecap="round"/><text x="42" y="19" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle">più</text><line x1="34.51" y1="24" x2="50" y2="24" stroke="#000" stroke-width="0.9" stroke-linecap="round"/><text x="53" y="20" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle" transform="rotate(90 53 20)">tutto</text></svg>';
+        const LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="32 2 36 36" width="60" height="60"><circle cx="50" cy="20" r="16" fill="#f0f0f0"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 1 50 4 Z" fill="#d6d6d6"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 0 50 36 Z" fill="#bdbdbd"/><path d="M 50 4 A 16 16 0 1 0 56.76 34.50" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><line x1="34.0" y1="24" x2="50" y2="24" stroke="#000" stroke-width="0.9"/><line x1="50" y1="10.90" x2="50" y2="36" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><text x="42" y="19" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle">più</text><text x="53" y="20" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle" transform="rotate(90 53 20)">tutto</text></svg>';
         // frontespizio per Word ed EPUB (nel PDF si disegna a parte): tipo, titolo, «Ricomposizione da», Testografia
         function htmlCopertina(conLogo) {
             const esc = t => String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -5185,7 +5200,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         // PDF costruito con pdf-lib (incorporata): caratteri Times standard, testo giustificato, numeri di pagina
         async function scaricaPDF(nomeFile) {
             if (!window.PDFLib) { console.error('pdf-lib non disponibile'); return; }
-            const { PDFDocument, StandardFonts, rgb, degrees } = window.PDFLib;
+            const { PDFDocument, StandardFonts, rgb, degrees, LineCapStyle } = window.PDFLib;
             const pdf = await PDFDocument.create();
             pdf.setTitle(titoloBase || 'Testografia');
             if (autoreBase) pdf.setAuthor(autoreBase);
@@ -5267,9 +5282,16 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 const s = lato / 36 * MM;
                 const X0 = cx * MM - 50 * s, Y0 = (PH - yTop) * MM + 2 * s;
                 const nero = rgb(0, 0, 0);
-                pagina.drawSvgPath('M 50 36 A 16 16 0 0 1 50 4', { x: X0, y: Y0, scale: s, borderColor: nero, borderWidth: 1.2 });
-                pagina.drawSvgPath('M 50 4 L 50 36', { x: X0, y: Y0, scale: s, borderColor: nero, borderWidth: 0.9 });
-                pagina.drawSvgPath('M 34.51 24 L 50 24', { x: X0, y: Y0, scale: s, borderColor: nero, borderWidth: 0.9 });
+                const o = { x: X0, y: Y0, scale: s };
+                // fondi: il disco grigio tenue, il quarto di «più» un po' piu' scuro, il quarto in basso ancora di piu'
+                pagina.drawCircle({ x: X0 + 50 * s, y: Y0 - 20 * s, size: 16 * s, color: rgb(0.94, 0.94, 0.94) });
+                pagina.drawSvgPath('M 50 24 L 34.51 24 A 16 16 0 0 1 50 4 Z', Object.assign({ color: rgb(0.84, 0.84, 0.84) }, o));
+                pagina.drawSvgPath('M 50 24 L 34.51 24 A 16 16 0 0 0 50 36 Z', Object.assign({ color: rgb(0.741, 0.741, 0.741) }, o));
+                // il contorno: dall'alto, a sinistra, sotto, fino a una breve coda a destra
+                pagina.drawSvgPath('M 50 4 A 16 16 0 1 0 56.76 34.50', Object.assign({ borderColor: nero, borderWidth: 1.2, borderLineCap: LineCapStyle.Round }, o));
+                pagina.drawSvgPath('M 34 24 L 50 24', Object.assign({ borderColor: nero, borderWidth: 0.9 }, o));
+                // la linea diritta: dal basso del cerchio fino appena sopra «tutto»
+                pagina.drawSvgPath('M 50 10.9 L 50 36', Object.assign({ borderColor: nero, borderWidth: 1.2, borderLineCap: LineCapStyle.Round }, o));
                 const fs = 7.5 * s;
                 const wPiu = FONT.h.widthOfTextAtSize('più', fs), wTutto = FONT.h.widthOfTextAtSize('tutto', fs);
                 pagina.drawText('più', { x: X0 + 42 * s - wPiu / 2, y: Y0 - 19 * s, size: fs, font: FONT.h, color: nero });

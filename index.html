@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 397 (28 novembre 2026)
+    TESTOGRAFIA — versione 401 (28 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -181,7 +181,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
         #top-bar-right { flex-grow: 1; min-width: 350px; display: flex; align-items: center; justify-content: space-between; padding: 0; background-color: var(--color-sky); box-sizing: border-box; gap: 0; position: relative; }
         /* a sinistra della barra di destra, simmetrico allo schermo del video: uno scaffale di libri */
-        .scaffale-wrapper { flex: 0 0 74px; height: 36px; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+        .scaffale-wrapper { flex: 0 0 74px; height: 36px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .scaffale-wrapper svg { cursor: pointer; }
         .scaffale-wrapper svg { margin-left: 18px; }
 
         .top-bar-right-center { display: flex; align-items: center; justify-content: center; gap: 31px; flex: 1 1 auto; min-width: 0; }
@@ -631,9 +632,15 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         .percorso-punto.apribile { cursor: pointer; border-bottom: 1px solid transparent; }
         .percorso-punto.apribile:hover { border-bottom-color: #000; }
         .percorso-azione { color: #888; }
+        .biblioteche-libere { margin-top: 18px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.08); text-align: center; font-family: var(--font-ui); font-size: 0.68em; line-height: 1.9; color: #999; }
+        .biblioteche-libere a { color: #555; text-decoration: none; border-bottom: 1px solid transparent; white-space: nowrap; }
+        .biblioteche-libere a:hover { color: #000; border-bottom-color: #000; }
+        .biblioteche-libere span { margin: 0 6px; color: #bbb; }
+        .biblioteche-libere .biblioteche-titolo { display: block; letter-spacing: 0.18em; text-transform: uppercase; font-size: 0.9em; color: #888; margin-bottom: 2px; }
         .percorso-sessione { padding: 14px 6px 6px 6px; border-bottom: 1px solid rgba(0,0,0,0.06); font-family: var(--font-ui); }
         .percorso-corpus { text-align: center; font-style: italic; font-size: 0.92em; line-height: 1.55; color: #000; }
-        .percorso-corpus .sep { font-style: normal; color: #bbb; margin: 0 7px; }
+        .percorso-corpus > span { white-space: nowrap; }
+        .percorso-corpus .sep { font-style: normal; color: #bbb; margin: 0 3px; }
         .percorso-passaggi { text-align: center; font-size: 0.7em; line-height: 2; color: #888; margin-top: 3px; }
         .percorso-passaggi em { color: #555; }
         .percorso-passo { white-space: nowrap; }
@@ -848,7 +855,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 397]</div>
+    <div id="version-label">[VERSIONE 401]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -857,7 +864,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <div id="top-bar">
         <div id="top-bar-left">
             <div class="logo-wrapper" id="logo-container" onclick="if (videoDisponibile) apriVideo()">
-                <svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="50" cy="20" r="16" fill="#f0f0f0"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 1 50 4 Z" fill="#d6d6d6"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 0 50 36 Z" fill="#bdbdbd"/><path d="M 50 4 A 16 16 0 1 0 56.76 34.50" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><line x1="34.0" y1="24" x2="50" y2="24" stroke="#000" stroke-width="0.9"/><line x1="50" y1="10.90" x2="50" y2="36" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><text x="42" y="19" font-family="'Montserrat', sans-serif" font-weight="300" font-size="7.5" fill="#000" text-anchor="middle">più</text><text x="53" y="20" font-family="'Montserrat', sans-serif" font-weight="300" font-size="7.5" fill="#000" text-anchor="middle" transform="rotate(90 53 20)">tutto</text></svg>
+                <svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="50" cy="20" r="16" fill="#f0f0f0"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 1 50 4 Z" fill="#d6d6d6"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 0 50 36 Z" fill="#bdbdbd"/><path d="M 50 4 A 16 16 0 1 0 56.76 34.50" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><line x1="34.0" y1="24" x2="50" y2="24" stroke="#000" stroke-width="0.9"/><line x1="50" y1="10.90" x2="50" y2="36" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><text x="42" y="19" font-family="'Montserrat', sans-serif" font-weight="300" font-size="7.5" fill="#000" text-anchor="middle">più</text><text x="58.4" y="20" font-family="'Montserrat', sans-serif" font-weight="300" font-size="7.5" fill="#000" text-anchor="middle" transform="rotate(-90 58.4 20)">tutto</text></svg>
                 <!-- con il video disponibile, al posto del logo c'e' uno schermo: cliccandolo parte il video -->
                 <svg class="occhio-video" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" width="24" height="24" role="img" aria-label="Guarda il video">
                     <rect x="5" y="8" width="30" height="20" rx="2" fill="#ffffff" stroke="#000" stroke-width="2.2"/>
@@ -877,7 +884,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             </button>
         </div>
         <div id="top-bar-right">
-            <div class="scaffale-wrapper" aria-hidden="true">
+            <a class="scaffale-wrapper" href="testi.html" target="_blank" rel="noopener" data-tooltip="DOVE TROVARE I TESTI" aria-label="Dove trovare i testi">
                 <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" width="30" height="30">
                     <rect x="6" y="12" width="5" height="19" fill="#ffffff" stroke="#000" stroke-width="2.4"/>
                     <rect x="11" y="8" width="5.5" height="23" fill="#ffffff" stroke="#000" stroke-width="2.4"/>
@@ -887,7 +894,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
                     <rect x="24.5" y="10.5" width="5" height="20" fill="#ffffff" stroke="#000" stroke-width="2.4" transform="rotate(16 29.5 30.5)"/>
                     <line x1="3" y1="32" x2="37" y2="32" stroke="#000" stroke-width="2.6" stroke-linecap="round"/>
                 </svg>
-            </div>
+            </a>
             <div class="top-bar-right-center">
                 <button class="btn-carica" onclick="apriModaleNuovoMontaggio()">+ Montaggi</button>
                 <button class="btn-esporta-round" onclick="esportaMontaggio()">esporta</button>
@@ -972,6 +979,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
                 <button id="btn-salva-testo" onclick="salvaTesto()" disabled>Aggiungi</button>
             </div>
             <div id="modal-status" style="text-align: center; font-family: var(--font-ui); font-size: 0.8em; margin-top: 10px; font-weight: bold;"></div>
+            <!-- dove trovare i testi: le biblioteche si aprono in una nuova scheda; il file scaricato si apre con «Scegli file» -->
+            <div class="biblioteche-libere">
+                <a href="testi.html" target="_blank" rel="noopener" class="biblioteche-titolo">Testi liberi</a>
+                <a href="https://www.liberliber.it/" target="_blank" rel="noopener">Liber Liber</a><span>·</span><a href="https://it.wikisource.org/" target="_blank" rel="noopener">Wikisource</a><span>·</span><a href="https://www.gutenberg.org/" target="_blank" rel="noopener">Gutenberg</a><span>·</span><a href="https://archive.org/details/texts" target="_blank" rel="noopener">Internet Archive</a>
+            </div>
         </div>
     </div>
 
@@ -2915,7 +2927,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     return (punto && apribile(pt))
                         ? '<span class="percorso-punto apribile"' + attr + ' onclick="riapriPunto(' + Number(punto[0].id) + ', \'' + punto[1] + '\')">' + tit + '</span>'
                         : '<span class="percorso-punto"' + attr + '>' + tit + '</span>';
-                }).join('<span class="sep">·</span>');
+                }).join(' <span class="sep">·</span> ');
                 const passaggi = sv.map(v => {
                     const e = et[v.id];
                     if (e === 'Incipit') return '<span class="percorso-passo">Incipit ' + htmlTitoloPunto(v, 'a') + '</span>';
@@ -4926,28 +4938,99 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             return intestazione + voci.map(v => '<p class="bib">' + v.html + '</p>\n').join('');
         }
 
-        // Montaggio: i frammenti e gli interventi nell'ordine della nuova unità testuale
-        function htmlDocumentoSequenza(pezzi) {
+        // ---- il corpus del montaggio: tutti i testi letti, anche quelli da cui non viene nessun frammento ----
+        // i passaggi del Percorso dalla sessione in cui e' stato preso il primo frammento a oggi, piu' le fonti dei frammenti
+        let corpusEsportazione = [];
+        function cognomeDi(a) {
+            a = (a || '').trim(); if (!a) return '';
+            if (a.indexOf(',') > 0) return a.split(',')[0].trim();
+            const w = a.split(/\s+/); return w[w.length - 1];
+        }
+        function luogoTratti(tratti) {
+            if (!tratti.length) return '';
+            if (tratti.some(t => t.charAt(0) === '«')) return tratti.join(', ');
+            return (tratti.length === 1 && tratti[0].indexOf('–') < 0 ? 'p. ' : 'pp. ') + tratti.join(', ');
+        }
+        async function corpusMontaggio(pezzi) {
+            const frs = pezzi.filter(p => p.tipo === 'F' && p.fr);
+            const tempi = frs.map(p => Number(p.fr.id)).filter(n => n > 1e12);
+            let voci = [];
+            if (tempi.length) {
+                try { voci = await leggiPercorso(); } catch (e) { voci = []; }
+                const t0 = Math.min.apply(null, tempi);
+                let inizio = -1;
+                voci.forEach((v, i) => { if (!v.da && v.a && new Date(v.ora).getTime() <= t0) inizio = i; });
+                if (inizio < 0) { inizio = voci.findIndex(v => new Date(v.ora).getTime() >= t0 - 3600000); if (inizio < 0) inizio = voci.length; }
+                voci = voci.slice(inizio);
+            }
+            const righe = [], perChiave = {};
+            fontiDelPercorso(voci).forEach(fo => {
+                const pt = fo.pt;
+                const f = fonteDi({ fonte: { testoId: pt.testo_id, titolo: (pt.titolo || '').trim(), autore: pt.autore, tipo: pt.tipo } });
+                const k = String(pt.testo_id);
+                perChiave[k] = { chiave: k, autore: f.autore, titolo: (f.titolo || '').trim(), tratti: fo.tratti.slice(), fr: [] };
+                righe.push(perChiave[k]);
+            });
+            frs.forEach(p => {
+                const f = fonteDi(p.fr);
+                const k = f.testoId ? String(f.testoId) : 't:' + f.titolo;
+                if (!perChiave[k]) { perChiave[k] = { chiave: k, autore: f.autore, titolo: (f.titolo || '').trim(), tratti: [], fr: [], soloFrammenti: true }; righe.push(perChiave[k]); }
+                const r = perChiave[k];
+                if (r.soloFrammenti) {
+                    const pg = String(p.fr.paginaOrigine || '').replace(/\s*(sx|dx)\b/g, '').trim();
+                    const t = (pg && pg !== '-' && pg !== 'PDF') ? (pg.split('–')[0] === pg.split('–')[1] ? pg.split('–')[0] : pg) : (p.fr.sezione ? '«' + p.fr.sezione + '»' : '');
+                    if (t && r.tratti.indexOf(t) < 0) r.tratti.push(t);
+                }
+                r.fr.push('F' + p.n);
+            });
+            // per le indicazioni a margine: il cognome basta, il titolo breve solo se lo stesso autore ha piu' testi
+            const perCognome = {};
+            righe.forEach(r => { const c = cognomeDi(r.autore); perCognome[c] = (perCognome[c] || 0) + 1; });
+            righe.forEach(r => {
+                r.luogo = luogoTratti(r.tratti);
+                const c = cognomeDi(r.autore);
+                r.breve = (c && perCognome[c] < 2) ? c : (c ? c + ', ' : '') + titoloBreve(r.titolo);
+            });
+            return righe;
+        }
+        // F3 F4 F5 F6 -> F3–F6
+        function sigleCompatte(sigle) {
+            const n = sigle.map(x => Number(String(x).slice(1))).filter(x => x > 0).sort((a, b) => a - b);
+            const out = []; let i = 0;
+            while (i < n.length) { let j = i; while (j + 1 < n.length && n[j + 1] === n[j] + 1) j++; out.push(j - i >= 2 ? 'F' + n[i] + '–F' + n[j] : (j > i ? 'F' + n[i] + ' F' + n[j] : 'F' + n[i])); i = j + 1; }
+            return out.join(' ');
+        }
+        function breveDiFrammento(fr, corpus) {
+            const f = fonteDi(fr);
+            const k = f.testoId ? String(f.testoId) : 't:' + f.titolo;
+            const r = (corpus || []).find(x => x.chiave === k);
+            const pag = descrizionePagina(fr);
+            const chi = r ? r.breve : (cognomeDi(f.autore) || titoloBreve(f.titolo));
+            return escapeHtmlText(chi) + (pag ? ', ' + pag : '');
+        }
+
+        // Montaggio: in testa il corpus, poi le parti una dopo l'altra (lettura continua); sigle e fonti brevi vanno a margine
+        function htmlDocumentoSequenza(pezzi, corpus) {
             if (!pezzi.length) return '<p>Il montaggio è ancora vuoto.</p>';
             let h = '';
-            // ogni pezzo: prima il numero e che cosa e' (Frammento, Intervento), poi il testo, poi da dove viene
-            pezzi.forEach(p => {
-                let etichetta, provenienza = '';
-                if (p.tipo === 'F') {
-                    const f = fonteDi(p.fr);
-                    const pag = descrizionePagina(p.fr);
-                    etichetta = '<span class="num-cerchio">F' + p.n + '</span>';
-                    provenienza = descrizioneFonte(f) + (pag ? ', ' + pag : '');
-                } else if (p.tipo === 'I') {
+            if (corpus && corpus.length) {
+                h += '<p class="h-corpus">Corpus</p>\n<table class="corpus">' + corpus.map(r =>
+                    '<tr><td class="c-tit">' + (r.autore ? escapeHtmlText(nomeCognome(r.autore)) + ', ' : '') + '<em>' + escapeHtmlText(r.titolo) + '</em></td><td class="c-luogo">' + escapeHtmlText(r.luogo) + '</td><td class="c-fr">' + escapeHtmlText(sigleCompatte(r.fr)) + '</td></tr>').join('') + '</table>\n';
+            }
+            h += '<p class="h-montaggio">Montaggio</p>\n';
+            pezzi.forEach((p, k) => {
+                let etichetta, breve = '', interv = false;
+                if (p.tipo === 'F') { etichetta = 'F' + p.n; breve = breveDiFrammento(p.fr, corpus); }
+                else if (p.tipo === 'I') {
                     const t = String(p.testo || '').match(TITOLO_RE);
-                    etichetta = '<span class="num-cerchio intervento">' + (t ? (t[1] === '1' ? 'Titolo' : 'Sottotitolo') : 'Intervento') + ' ' + p.n + '</span>';
+                    etichetta = (t ? (t[1] === '1' ? 'Titolo' : 'Sottotitolo') : 'Intervento') + ' ' + p.n; interv = true;
                 } else {
-                    etichetta = '<strong>Testo di partenza</strong>';
-                    if (p.fr && p.fr.titoloTesto) provenienza = '<em>' + escapeHtmlText(p.fr.titoloTesto) + '</em>';
+                    etichetta = 'Testo di partenza';
+                    if (p.fr && p.fr.titoloTesto) breve = escapeHtmlText(titoloBreve(p.fr.titoloTesto));
                 }
-                h += '<p class="et">' + etichetta + '</p>\n';
-                htmlTestoDocumento(p.testo).forEach(t => { h += '<p class="cit' + (p.tipo === 'I' ? ' interv' : '') + '">' + t + '</p>\n'; });
-                if (provenienza) h += '<p class="fonte">' + provenienza + '</p>\n';
+                // il «+»: ogni parte si aggiunge a tutto cio' che precede
+                h += '<p class="et"><span class="num-cerchio' + (interv ? ' intervento' : '') + '">' + (k ? '+ ' : '') + etichetta + '</span>' + (breve ? ' <span class="m-fonte">' + breve + '</span>' : '') + '</p>\n';
+                htmlTestoDocumento(p.testo).forEach(t => { h += '<p class="cit' + (interv ? ' interv' : '') + '">' + t + '</p>\n'; });
             });
             return h;
         }
@@ -4995,6 +5078,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             const ids = [];
             costruisciPezzi().pezzi.forEach(p => { if (p.tipo !== 'F') return; const f = fonteDi(p.fr); if (f.testoId && ids.indexOf(String(f.testoId)) < 0) ids.push(String(f.testoId)); });
             await completaBibliografie(ids);
+            try { corpusEsportazione = await corpusMontaggio(costruisciPezzi().pezzi); } catch (e) { console.warn(e); corpusEsportazione = []; }
             apriFinestraEsportazione(nomeBase, "", win);
         }
 
@@ -5071,7 +5155,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             const nomeDoc = titolo;
             const documentiJson = JSON.stringify({
                 testo: { titolo: titolo, titoloHtml: titoloHtml, sottotitoloHtml: autoreHtml, sottotitolo: autore, html: paragrafiHtml },
-                sequenza: { titolo: titolo, titoloHtml: titoloHtml, sottotitoloHtml: '', sottotitolo: '', html: htmlDocumentoSequenza(costruito.pezzi) },
+                sequenza: { titolo: titolo, titoloHtml: titoloHtml, sottotitoloHtml: '', sottotitolo: '', html: htmlDocumentoSequenza(costruito.pezzi, corpusEsportazione) },
                 fonti: { titolo: titolo, titoloHtml: titoloHtml, sottotitoloHtml: '', sottotitolo: '', html: htmlDocumentoFonti(costruito.pezzi) }
             }).replace(/</g, '\\u003c');
             const noteJson = JSON.stringify(hasNotes ? '<h2>Note</h2>' + endnotesHtml : '').replace(/</g, '\\u003c');
@@ -5150,6 +5234,13 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         .num-cerchio, .num-cerchio.intervento { display: inline; min-width: 0; height: auto; padding: 0; border: none; border-radius: 0; background: none; color: #555; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 0.85em; letter-spacing: 0.14em; text-transform: uppercase; }
         p.cit.interv { font-style: italic; }
         p.fonte { text-align: right !important; margin-right: 0; }
+        p.h-corpus, p.h-montaggio { text-align: center !important; text-indent: 0 !important; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing: 0.22em; text-transform: uppercase; font-size: 0.75em; color: #333; margin: 1.6em 0 0.8em 0; }
+        table.corpus { width: 100%; border-collapse: collapse; font-size: 0.9em; margin-bottom: 1em; }
+        table.corpus td { padding: 0.35em 0.3em; border-bottom: 1px solid #ddd; vertical-align: top; text-align: left; }
+        table.corpus td.c-luogo { color: #666; }
+        table.corpus td.c-fr { text-align: right; white-space: nowrap; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 0.75em; letter-spacing: 0.1em; }
+        p.et .num-cerchio { border: none; background: none; color: #555; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: normal; font-size: 0.68em; letter-spacing: 0.15em; text-transform: uppercase; padding: 0; min-width: 0; height: auto; margin-right: 0.3em; }
+        p.et .m-fonte { font-size: 0.75em; color: #777; font-weight: normal; }
         sup.marca-f { font-size: 0.55em; vertical-align: super; line-height: 0; color: #888; padding-right: 2px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing: 0.02em; }
         body.senza-marche sup.marca-f { display: none; }
         .barra-documenti { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 34px 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.2; text-indent: 0; }
@@ -5164,7 +5255,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
     </style>
 </head>
 <body>
-    <div class="logo-export" aria-hidden="true"><svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="50" cy="20" r="16" fill="#f0f0f0"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 1 50 4 Z" fill="#d6d6d6"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 0 50 36 Z" fill="#bdbdbd"/><path d="M 50 4 A 16 16 0 1 0 56.76 34.50" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><line x1="34.0" y1="24" x2="50" y2="24" stroke="#000" stroke-width="0.9"/><line x1="50" y1="10.90" x2="50" y2="36" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><text x="42" y="19" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle">più</text><text x="53" y="20" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle" transform="rotate(90 53 20)">tutto</text></svg></div>
+    <div class="logo-export" aria-hidden="true"><svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><circle cx="50" cy="20" r="16" fill="#f0f0f0"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 1 50 4 Z" fill="#d6d6d6"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 0 50 36 Z" fill="#bdbdbd"/><path d="M 50 4 A 16 16 0 1 0 56.76 34.50" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><line x1="34.0" y1="24" x2="50" y2="24" stroke="#000" stroke-width="0.9"/><line x1="50" y1="10.90" x2="50" y2="36" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><text x="42" y="19" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle">più</text><text x="58.4" y="20" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle" transform="rotate(-90 58.4 20)">tutto</text></svg></div>
     <div class="barra-documenti" id="barra-documenti">
         <button class="tab-doc" data-doc="fonti" onclick="mostraDocumento('fonti')">Fonti</button>
         <button class="tab-doc" data-doc="sequenza" onclick="mostraDocumento('sequenza')">Montaggio</button>
@@ -5194,7 +5285,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         const AUTORI_FONTI = ${autoriJson};
         const TIPI_DOC = { testo: 'Ricomposizione', sequenza: 'Montaggio', fonti: 'Fonti' };
         const MOTTO = 'LEGGI SCRIVI USA IL TESTO';
-        const LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="32 2 36 36" width="60" height="60"><circle cx="50" cy="20" r="16" fill="#f0f0f0"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 1 50 4 Z" fill="#d6d6d6"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 0 50 36 Z" fill="#bdbdbd"/><path d="M 50 4 A 16 16 0 1 0 56.76 34.50" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><line x1="34.0" y1="24" x2="50" y2="24" stroke="#000" stroke-width="0.9"/><line x1="50" y1="10.90" x2="50" y2="36" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><text x="42" y="19" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle">più</text><text x="53" y="20" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle" transform="rotate(90 53 20)">tutto</text></svg>';
+        const LOGO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="32 2 36 36" width="60" height="60"><circle cx="50" cy="20" r="16" fill="#f0f0f0"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 1 50 4 Z" fill="#d6d6d6"/><path d="M 50 24 L 34.51 24 A 16 16 0 0 0 50 36 Z" fill="#bdbdbd"/><path d="M 50 4 A 16 16 0 1 0 56.76 34.50" fill="none" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><line x1="34.0" y1="24" x2="50" y2="24" stroke="#000" stroke-width="0.9"/><line x1="50" y1="10.90" x2="50" y2="36" stroke="#000" stroke-width="1.2" stroke-linecap="round"/><text x="42" y="19" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle">più</text><text x="58.4" y="20" font-family="Helvetica, Arial, sans-serif" font-size="7.5" fill="#000" text-anchor="middle" transform="rotate(-90 58.4 20)">tutto</text></svg>';
         // frontespizio per Word ed EPUB (nel PDF si disegna a parte): tipo, titolo, «Ricomposizione da», Testografia
         function htmlCopertina(conLogo) {
             const esc = t => String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -5203,7 +5294,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 + (AUTORI_FONTI.length ? '<p class="cop-da">Ricomposizione da</p><p class="cop-autori">' + esc(AUTORI_FONTI.join(' · ')) + '</p>' : '')
                 + '<p class="cop-firma">TESTOGRAFIA</p>' + (conLogo ? '<div class="cop-logo">' + LOGO_SVG + '</div>' : '') + '</div>';
         }
-        const STILE_COPERTINA = '.copertina p { text-align: center !important; text-indent: 0 !important; margin: 0; } .cop-tipo { font-size: 16pt; letter-spacing: 5pt; margin-top: 50pt !important; } .cop-titolo { font-size: 28pt; margin-top: 190pt !important; } .cop-linea { margin: 10pt 0 !important; } .cop-da { font-style: italic; } .cop-autori { font-size: 13pt; } .cop-firma { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; letter-spacing: 3pt; margin-top: 200pt !important; } .cop-logo { text-align: center; margin-top: 8pt; } p.tipo-doc { text-align: center !important; text-indent: 0 !important; font-style: italic; color: #555555; font-size: 11pt; margin: 0 0 18pt 0 !important; } .num-cerchio, .num-cerchio.intervento { display: inline; min-width: 0; height: auto; padding: 0; border: none; border-radius: 0; background: none; color: #555555; font-family: Arial, Helvetica, sans-serif; font-weight: normal; font-size: 7pt; letter-spacing: 1.5pt; text-transform: uppercase; } p.cit { margin-left: 0 !important; } p.cit.interv { font-style: italic; } p.fonte { text-align: right !important; margin-left: 0 !important; font-family: inherit !important; font-size: 9pt; }';
+        const STILE_COPERTINA = '.copertina p { text-align: center !important; text-indent: 0 !important; margin: 0; } .cop-tipo { font-size: 16pt; letter-spacing: 5pt; margin-top: 50pt !important; } .cop-titolo { font-size: 28pt; margin-top: 190pt !important; } .cop-linea { margin: 10pt 0 !important; } .cop-da { font-style: italic; } .cop-autori { font-size: 13pt; } .cop-firma { font-family: Arial, Helvetica, sans-serif; font-size: 8pt; letter-spacing: 3pt; margin-top: 200pt !important; } .cop-logo { text-align: center; margin-top: 8pt; } p.tipo-doc { text-align: center !important; text-indent: 0 !important; font-style: italic; color: #555555; font-size: 11pt; margin: 0 0 18pt 0 !important; } .num-cerchio, .num-cerchio.intervento { display: inline; min-width: 0; height: auto; padding: 0; border: none; border-radius: 0; background: none; color: #555555; font-family: Arial, Helvetica, sans-serif; font-weight: normal; font-size: 7pt; letter-spacing: 1.5pt; text-transform: uppercase; } p.cit { margin-left: 0 !important; } p.cit.interv { font-style: italic; } p.fonte { text-align: right !important; margin-left: 0 !important; font-family: inherit !important; font-size: 9pt; } p.h-corpus, p.h-montaggio { text-align: center !important; text-indent: 0 !important; font-family: Arial, Helvetica, sans-serif; font-size: 9pt; letter-spacing: 3pt; text-transform: uppercase; margin: 18pt 0 8pt 0 !important; } table.corpus { width: 100%; border-collapse: collapse; font-size: 10.5pt; } table.corpus td { padding: 3pt; border-bottom: 0.5pt solid #cccccc; vertical-align: top; text-align: left; } td.c-luogo { color: #555555; } td.c-fr { text-align: right; font-family: Arial, sans-serif; font-size: 8pt; } p.et { font-weight: normal !important; } .m-fonte { font-size: 8.5pt; color: #777777; font-weight: normal; }';
         let docCorrente = 'testo';
         let titoloBase = ${titoloJs};
         let autoreBase = ${autoreJs};
@@ -5384,11 +5475,13 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 const fs = 7.5 * s;
                 const wPiu = FONT.h.widthOfTextAtSize('più', fs), wTutto = FONT.h.widthOfTextAtSize('tutto', fs);
                 pagina.drawText('più', { x: X0 + 42 * s - wPiu / 2, y: Y0 - 19 * s, size: fs, font: FONT.h, color: nero });
-                pagina.drawText('tutto', { x: X0 + 53 * s, y: Y0 - 20 * s + wTutto / 2, size: fs, font: FONT.h, color: nero, rotate: degrees(-90) });
+                pagina.drawText('tutto', { x: X0 + 58.4 * s, y: Y0 - 20 * s - wTutto / 2, size: fs, font: FONT.h, color: nero, rotate: degrees(90) });
             }
 
             // ---- frontespizio: il tipo di documento in alto, il titolo, «Ricomposizione da» e gli autori, Testografia e il logo in basso ----
             const tipoDoc = TIPI_DOC[docCorrente] || '';
+            const MONT = docCorrente === 'sequenza';
+            if (!MONT) {
             nuovaPagina();
             y = 40;
             scriviSpaziatoCentrato(tipoDoc.toUpperCase(), FONT.r, 16, 1.7, NERO);
@@ -5415,6 +5508,51 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             y += LH;
             if (autoreBase) { scriviCentrato(scrivibile(autoreBase), FONT.i, FS_AUT); y += LH * 2.5; }
             else { y += LH * 1.5; }
+            } else {
+                // ---- Montaggio, pagina 1: il tipo, il titolo, il corpus; il logo in basso ----
+                nuovaPagina();
+                y = MT + 14;
+                scriviCentrato('Montaggio', FONT.i, 14, GRIGIO);
+                y += 10;
+                dividiRighe(scrivibile(titoloBase), FONT.r, FS_TIT, W, W).forEach(r => { scriviCentrato(r, FONT.r, FS_TIT); y += 8; });
+                y += 12;
+                const righeCorpus = Array.from(document.querySelectorAll('#testo-esportato table.corpus tr'));
+                if (righeCorpus.length) {
+                    scriviSpaziatoCentrato('CORPUS', FONT.h, 9.5, 1.3, NERO);
+                    y += 7;
+                    const W1 = W * 0.60, W2 = W * 0.30, FSC = 10.5, LHC = 5;
+                    righeCorpus.forEach(tr => {
+                        const td = tr.querySelectorAll('td');
+                        const parole = [];
+                        const visita = (n, corsivo) => n.childNodes.forEach(c => {
+                            if (c.nodeType === 3) scrivibile(c.textContent).split(' ').forEach(w => { if (w) parole.push({ t: w, f: corsivo ? FONT.i : FONT.r }); });
+                            else if (c.nodeType === 1) visita(c, corsivo || c.tagName === 'EM');
+                        });
+                        visita(td[0], false);
+                        const righe1 = [[]]; let usata = 0;
+                        const sp = larghezza(' ', FONT.r, FSC);
+                        parole.forEach(w => {
+                            const lw = larghezza(w.t, w.f, FSC);
+                            if (righe1[righe1.length - 1].length && usata + sp + lw > W1 - 3) { righe1.push([]); usata = 0; }
+                            usata += (righe1[righe1.length - 1].length ? sp : 0) + lw;
+                            righe1[righe1.length - 1].push(w);
+                        });
+                        const righe2 = dividiRighe(scrivibile(td[1].textContent), FONT.r, FSC - 0.5, W2 - 3, W2 - 3);
+                        const n = Math.max(righe1.length, righe2.length, 1);
+                        if (y + n * LHC + 3 > MAX_Y - 40) return;
+                        const y0 = y + 1;
+                        righe1.forEach((rr, i) => { let x = ML + 1; rr.forEach((w, k) => { if (k) x += sp; y = y0 + i * LHC; scrivi(w.t, x, w.f, FSC); x += larghezza(w.t, w.f, FSC); }); });
+                        righe2.forEach((rr, i) => { y = y0 + i * LHC; scrivi(rr, ML + W1, FONT.r, FSC - 0.5, GRIGIO); });
+                        const fr = scrivibile(td[2].textContent).toUpperCase();
+                        if (fr) { y = y0; const lf = Array.from(fr).reduce((a, c) => a + larghezza(c, FONT.h, 7.5) + 0.35, 0); let x = ML + W - 1 - lf; Array.from(fr).forEach(c => { scrivi(c, x, FONT.h, 7.5); x += larghezza(c, FONT.h, 7.5) + 0.35; }); }
+                        y = y0 + n * LHC - 1;
+                        pagina.drawLine({ start: { x: ML * MM, y: (PH - y) * MM }, end: { x: (ML + W) * MM, y: (PH - y) * MM }, thickness: 0.4, color: rgb(0.8, 0.8, 0.8) });
+                        y += 2.5;
+                    });
+                }
+                disegnaLogo(PW / 2, PH - 62, 14);
+                nuovaPagina();
+            }
 
             // voce di bibliografia: titolo in corsivo, rientro sporgente, allineata a sinistra
             function scriviVoceBibliografia(p) {
@@ -5474,12 +5612,36 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                     let t = testoPerPdf(p);
                     if (c || np) { const cl = p.cloneNode(true); cl.querySelectorAll('.num-cerchio, .num-par, .linguetta').forEach(x => x.remove()); t = cl.textContent.trim(); }
                     return { el: p, t: scrivibile(t).trim(), interv: p.classList.contains('interv'), h: p.classList.contains('h'), et: p.classList.contains('et'), cit: p.classList.contains('cit'), fonte: p.classList.contains('fonte'), bib: p.classList.contains('bib'),
-                             tit: p.classList.contains('tit1') ? 1 : (p.classList.contains('tit2') ? 2 : 0), num: np ? np.textContent.trim() : '', senzaRientro: p.style.textIndent !== '' && parseFloat(p.style.textIndent) === 0,
+                             tit: p.classList.contains('tit1') ? 1 : (p.classList.contains('tit2') ? 2 : 0), hCorpus: p.classList.contains('h-corpus'), hMont: p.classList.contains('h-montaggio'), num: np ? np.textContent.trim() : '', senzaRientro: p.style.textIndent !== '' && parseFloat(p.style.textIndent) === 0,
                              cerchio: c ? { n: c.textContent.trim(), intervento: c.classList.contains('intervento') } : null };
                 })
                 .filter(o => o.t.length > 0 || o.cerchio);
+            // Montaggio: la colonna del testo lascia a sinistra il margine per le sigle e le fonti brevi
+            const MG_W = 27, MG_GAP = 5, MG = MONT ? MG_W + MG_GAP : 0;
+            let margine = null, fineMargine = 0;
+            function scriviMargine(m) {
+                // sigla e fonte breve allineate a destra, accanto alla prima riga della parte
+                const et = m.n.toUpperCase();
+                const lw = Array.from(et).reduce((a, c) => a + larghezza(c, FONT.h, 6.5) + 0.3, 0) - 0.3;
+                let x = ML + MG_W - lw;
+                Array.from(et).forEach(c => { pagina.drawText(c, { x: x * MM, y: (PH - y - 0.6) * MM, size: 6.5, font: FONT.h, color: GRIGIO }); x += larghezza(c, FONT.h, 6.5) + 0.3; });
+                let yy = y;
+                const righeF = m.f ? dividiRighe(m.f, FONT.r, 7.5, MG_W, MG_W) : [];
+                righeF.forEach(rr => { yy += 3.4; pagina.drawText(rr, { x: (ML + MG_W - larghezza(rr, FONT.r, 7.5)) * MM, y: (PH - yy) * MM, size: 7.5, font: FONT.r, color: GRIGIO_NUM }); });
+                // dove finisce la nota, per non sovrapporla alla parte seguente
+                fineMargine = yy + 2;
+            }
             voci.forEach((v, idx) => {
                 if (v.bib) { scriviVoceBibliografia(v.el); return; }
+                if (MONT && v.hCorpus) return;
+                if (MONT && v.hMont) { scriviSpaziatoCentrato('MONTAGGIO', FONT.h, 7.5, 1.2, GRIGIO_NUM); y += LH * 1.6; return; }
+                if (MONT && v.cerchio) {
+                    if (fineMargine > y) y = fineMargine;
+                    if (idx > 0) y += 1.5;
+                    if (y + LH * 2 > MAX_Y) nuovaPagina();
+                    margine = { n: v.cerchio.n, f: v.t };
+                    return;
+                }
                 if (v.cerchio) { scriviEtichettaCerchio(v); return; }
                 if (v.fonte) {   // da dove viene il frammento: piccolo, grigio, allineato a destra, dopo il testo
                     y += 0.5;
@@ -5498,7 +5660,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 }
                 const titoletto = v.h || v.et;
                 const font = titoletto ? FONT.b : (v.interv ? FONT.i : FONT.r);
-                const off = 0;
+                const off = (MONT && v.cit) ? MG : 0;
                 const rientro = (idx === 0 || titoletto || v.cit || v.senzaRientro) ? 0 : PARA_INDENT;
                 if (v.h) y += 3;
                 if (v.et && y + LH * 3 > MAX_Y) nuovaPagina();
@@ -5509,6 +5671,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
                 else if (righe.length > 2 && stanno === righe.length - 1) nuovaPagina();
                 righe.forEach((riga, i) => {
                     if (y + LH > MAX_Y) nuovaPagina();
+                    if (i === 0 && margine) { scriviMargine(margine); margine = null; }
                     const ultima = (i === righe.length - 1);
                     const x = ML + off + (i === 0 ? rientro : 0);
                     // numero del paragrafo a margine, sulla prima riga
@@ -5552,10 +5715,14 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             // pagine del testo: in alto il motto sopra una linea sottile, in basso il numero sotto una linea sottile; il frontespizio non ha ne' l'uno ne' l'altro
             const caratteriMotto = Array.from(MOTTO);
             const largMotto = caratteriMotto.reduce((a, c) => a + larghezza(c, FONT.h, 7), 0) + 0.75 * (caratteriMotto.length - 1);
+            const caratteriFirma = Array.from('TESTOGRAFIA');
             pdf.getPages().forEach((p, i) => {
-                if (i === 0) return;
-                const n = String(i);
-                p.drawText(n, { x: (PW - larghezza(n, FONT.r, 10)) / 2 * MM, y: 15 * MM, size: 10, font: FONT.r, color: NERO });
+                if (i === 0 && !MONT) return;
+                const n = String(MONT ? i + 1 : i);
+                p.drawText(n, { x: (PW - MR - larghezza(n, FONT.r, 10)) * MM, y: 15 * MM, size: 10, font: FONT.r, color: NERO });
+                const largFirma = caratteriFirma.reduce((a, c) => a + larghezza(c, FONT.h, 6.5), 0) + 0.9 * (caratteriFirma.length - 1);
+                let xf = (PW - largFirma) / 2;
+                caratteriFirma.forEach(c => { p.drawText(c, { x: xf * MM, y: 15.3 * MM, size: 6.5, font: FONT.h, color: GRIGIO }); xf += larghezza(c, FONT.h, 6.5) + 0.9; });
                 p.drawLine({ start: { x: ML * MM, y: 20 * MM }, end: { x: (PW - MR) * MM, y: 20 * MM }, thickness: 0.4, color: NERO });
                 let x = (PW - largMotto) / 2;
                 caratteriMotto.forEach(c => { p.drawText(c, { x: x * MM, y: (PH - 17) * MM, size: 7, font: FONT.h, color: GRIGIO_NUM }); x += larghezza(c, FONT.h, 7) + 0.75; });
@@ -5574,6 +5741,18 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             clone.querySelectorAll("p").forEach(p => p.removeAttribute("style"));
             clone.querySelectorAll('.num-par, .linguetta').forEach(d => d.remove());
             if (document.body.classList.contains('senza-marche')) clone.querySelectorAll('.marca-f').forEach(s => s.remove());
+            // Word legge meglio gli stili scritti sugli elementi: corpus in tabella, sigle piccole, testo continuo
+            clone.querySelectorAll('table.corpus').forEach(t => { t.setAttribute('width', '100%'); t.setAttribute('style', 'width:100%; border-collapse:collapse; font-size:10.5pt'); });
+            clone.querySelectorAll('table.corpus td').forEach(td => {
+                const w = td.classList.contains('c-tit') ? '62%' : (td.classList.contains('c-luogo') ? '26%' : '12%');
+                td.setAttribute('width', w);
+                td.setAttribute('style', 'padding:2pt 3pt; border-bottom:0.5pt solid #cccccc; vertical-align:top; text-indent:0; text-align:' + (td.classList.contains('c-fr') ? 'right; font-family:Arial; font-size:8pt' : 'left') + (td.classList.contains('c-luogo') ? '; color:#555555' : ''));
+            });
+            clone.querySelectorAll('p.h-corpus, p.h-montaggio').forEach(p => p.setAttribute('style', 'text-align:center; text-indent:0; font-family:Arial; font-size:9pt; letter-spacing:3pt; text-transform:uppercase; margin:18pt 0 8pt 0'));
+            clone.querySelectorAll('p.et').forEach(p => p.setAttribute('style', 'margin:8pt 0 1pt 0; text-indent:0; text-align:left; font-weight:normal'));
+            clone.querySelectorAll('p.et .num-cerchio').forEach(c => c.setAttribute('style', 'border:none; background:none; font-family:Arial; font-size:7pt; color:#555555; letter-spacing:1.5pt; text-transform:uppercase; font-weight:normal; padding:0'));
+            clone.querySelectorAll('p.et .m-fonte').forEach(c => c.setAttribute('style', 'font-size:8.5pt; color:#777777'));
+            clone.querySelectorAll('p.cit').forEach(p => p.setAttribute('style', 'margin:0; text-indent:0; text-align:justify' + (p.classList.contains('interv') ? '; font-style:italic' : '')));
             const h1w = clone.querySelector('h1');
             if (h1w) h1w.insertAdjacentHTML('afterend', '<p class="tipo-doc">' + (TIPI_DOC[docCorrente] || '') + '</p>');
             const wordStyle = 'p.tit1 { font-size: 15pt; font-weight: bold; text-indent: 0; text-align: left; margin: 18pt 0 8pt 0; } p.tit2 { font-size: 13pt; font-weight: bold; text-indent: 0; text-align: left; margin: 14pt 0 6pt 0; } .num-cerchio { background: #ffffff; color: #000000; border: 1px solid #000000; font-weight: bold; padding: 0 3pt; border-radius: 8pt; } .num-cerchio.intervento { background: #000000; color: #ffffff; } p.h, p.et { font-weight: bold; text-indent: 0; } p.et { margin-top: 10pt; } p.cit { margin-left: 18pt; text-indent: 0; text-align: justify; } p.fonte { margin: 3pt 0 0 18pt; text-indent: 0; text-align: left; font-family: Arial, sans-serif; font-size: 9pt; color: #555555; } sup.marca-f { font-size: 7pt; color: #777777; } ' + '@page WordSection1 { size: 595.3pt 841.9pt; margin: 70.85pt 56.7pt 85.05pt 56.7pt; } div.WordSection1 { page: WordSection1; } body { font-family: Garamond, "EB Garamond", serif; font-size: 12pt; line-height: 1.5; text-align: justify; color: #1a1a1a; } h1 { font-family: Garamond, serif; font-size: 20pt; text-align: center; margin: 0 0 0.3em 0; font-weight: normal; letter-spacing: 0.05em; } h1 + p { margin-top: 24pt; } .author { font-size: 11pt; text-align: center; font-style: italic; color: #555; margin: 0 0 2em 0; } p { text-indent: 1.5em; margin: 0; } p:first-of-type { text-indent: 0; } sup.nota-ref-export { font-size: 0.65em; vertical-align: super; line-height: 0; padding: 0 1px; color: #555; font-weight: 600; } .endnotes { margin-top: 3em; padding-top: 1.5em; border-top: 1px solid #ddd; } .endnotes h2 { font-size: 14pt; font-weight: normal; text-align: center; margin: 0 0 1.5em 0; letter-spacing: 0.1em; text-transform: uppercase; } p.endnote-paragraph { font-size: 10pt; line-height: 1.4; text-align: justify; margin-bottom: 8pt; padding-left: 15pt; text-indent: -15pt; } .endnote-num { font-weight: 600; } p.bib { padding-left: 18pt; text-indent: -18pt; margin: 0 0 6pt 0; text-align: left; }';

@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 396 (28 novembre 2026)
+    TESTOGRAFIA — versione 397 (28 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -631,6 +631,15 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         .percorso-punto.apribile { cursor: pointer; border-bottom: 1px solid transparent; }
         .percorso-punto.apribile:hover { border-bottom-color: #000; }
         .percorso-azione { color: #888; }
+        .percorso-sessione { padding: 14px 6px 6px 6px; border-bottom: 1px solid rgba(0,0,0,0.06); font-family: var(--font-ui); }
+        .percorso-corpus { text-align: center; font-style: italic; font-size: 0.92em; line-height: 1.55; color: #000; }
+        .percorso-corpus .sep { font-style: normal; color: #bbb; margin: 0 7px; }
+        .percorso-passaggi { text-align: center; font-size: 0.7em; line-height: 2; color: #888; margin-top: 3px; }
+        .percorso-passaggi em { color: #555; }
+        .percorso-passo { white-space: nowrap; }
+        .percorso-passaggi .percorso-num { width: 14px; height: 14px; border-color: #888; color: #666; font-weight: normal; font-size: 0.85em; margin: 0 3px 0 9px; vertical-align: -2px; }
+        .percorso-passaggi .percorso-fine { margin-left: 9px; }
+        .percorso-data { text-align: right; font-size: 0.6em; color: #aaa; letter-spacing: 0.04em; margin-top: 2px; }
         .archivio-section-title {
             font-family: var(--font-ui);
             font-size: 0.7em;
@@ -839,7 +848,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 396]</div>
+    <div id="version-label">[VERSIONE 397]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -2774,7 +2783,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         }
 
         function puntoDi(t, dati) {
-            return { testo_id: t.id, titolo: t.titolo || '', autore: t.autore || '', tipo: t.tipo || 'originale', pagina: dati.pagina || '', sezione: dati.sezione || '', pos: dati.pos || null };
+            return { testo_id: t.id, titolo: (t.titolo || '').trim(), autore: t.autore || '', tipo: t.tipo || 'originale', pagina: dati.pagina || '', sezione: dati.sezione || '', pos: dati.pos || null };
         }
 
         // dove si lascia il testo aperto ora
@@ -2821,7 +2830,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
 
         function etichettaPunto(pt) {
             if (!pt) return '';
-            let h = '<em>' + escapeHtmlText(pt.titolo || 'Testo senza titolo') + '</em>';
+            let h = '<em>' + escapeHtmlText((pt.titolo || '').trim() || 'Testo senza titolo') + '</em>';
             if (pt.pagina) h += ', p. ' + escapeHtmlText(pt.pagina);
             else if (pt.sezione) h += ', «' + escapeHtmlText(pt.sezione) + '»';
             return h;
@@ -2860,21 +2869,61 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             return percorsoCache;
         }
 
+        // titolo breve: senza sottotitolo ("Paraletteratura. Lingua e stile..." -> "Paraletteratura")
+        function titoloBreve(t) {
+            t = (t || '').trim() || 'Testo senza titolo';
+            const m = t.match(/^(.{3,}?)(\.\s|:\s|\s[–—-]\s)/);
+            return m ? m[1].trim() : t;
+        }
+        function nomeCognome(a) { a = (a || '').trim(); const m = a.match(/^([^,]+),\s*([^,]+)$/); return m ? m[2] + ' ' + m[1] : a; }
+        function apribile(pt) { return pt && testiDatabase.some(x => String(x.id) === String(pt.testo_id)); }
+        function htmlTitoloPunto(v, lato) {
+            const pt = v[lato];
+            const tit = '<em>' + escapeHtmlText(titoloBreve(pt.titolo)) + '</em>';
+            return apribile(pt) ? '<span class="percorso-punto apribile" onclick="riapriPunto(' + Number(v.id) + ', \'' + lato + '\')">' + tit + '</span>' : tit;
+        }
+        // le sessioni: da un Incipit al suo Explicit (una nuova sessione comincia anche con un nuovo giorno)
+        function sessioniPercorso(voci) {
+            const sess = []; let g = '';
+            voci.forEach(v => {
+                const gv = giornoDi(v.ora);
+                if (!sess.length || gv !== g || (!v.da && v.a)) sess.push([]);
+                g = gv; sess[sess.length - 1].push(v);
+            });
+            return sess;
+        }
+
         async function disegnaPercorso() {
             const container = document.getElementById('lista-archivio-body');
-            const tutte = await leggiPercorso();
-            const et = etichettePercorso(tutte);
-            const voci = tutte.filter(v => {
-                if (!ricercaArchivio) return true;
-                return [v.da, v.a].some(pt => pt && ((pt.titolo || '').toLowerCase().includes(ricercaArchivio) || (pt.autore || '').toLowerCase().includes(ricercaArchivio)));
-            });
+            const voci = await leggiPercorso();
+            const et = etichettePercorso(voci);
             if (schedaArchivio !== 'percorso') return;
             if (!voci.length) { container.innerHTML = '<div style="text-align:center; color:#999; font-style:italic; padding:15px;">Nessun passaggio.</div>'; return; }
-            // i giorni dal piu' recente; dentro il giorno, i passaggi nell'ordine in cui sono avvenuti
-            const giorni = [];
-            voci.forEach(v => { const g = giornoDi(v.ora); if (!giorni.length || giorni[giorni.length - 1].g !== g) giorni.push({ g: g, voci: [] }); giorni[giorni.length - 1].voci.push(v); });
-            container.innerHTML = giorni.reverse().map(gi => '<div class="archivio-section-title centrato">' + escapeHtmlText(gi.g) + '</div>' +
-                gi.voci.map(v => '<div class="percorso-riga"><span class="percorso-ora">' + htmlEtichetta(et[v.id]) + '</span><span class="percorso-testo">' + testoPassaggio(v) + '</span></div>').join('')).join('');
+            // prima il corpus che la sessione ha formato (ogni testo una volta), poi in piccolo i passaggi; la data in fondo a destra
+            container.innerHTML = sessioniPercorso(voci).reverse().map(sv => {
+                const fonti = fontiDelPercorso(sv);
+                const corpus = fonti.map(fo => {
+                    const pt = fo.pt;
+                    // il clic riapre il testo dove lo si e' lasciato (l'ultima uscita), altrimenti dove si e' entrati
+                    const uscite = sv.filter(v => v.da && String(v.da.testo_id) === String(pt.testo_id));
+                    const ingresso = sv.find(v => v.a && String(v.a.testo_id) === String(pt.testo_id));
+                    const punto = uscite.length ? [uscite[uscite.length - 1], 'da'] : (ingresso ? [ingresso, 'a'] : null);
+                    const tip = [nomeCognome(pt.autore), (pt.titolo || '').trim(), fo.tratti.length ? (fo.tratti.some(t => /^\d/.test(t)) ? 'pp. ' : '') + fo.tratti.join(', ') : '']
+                        .filter(x => x && String(x).trim()).join(' · ').toUpperCase();
+                    const tit = escapeHtmlText(titoloBreve(pt.titolo));
+                    const attr = ' data-tooltip="' + escapeHtmlText(tip) + '"';
+                    return (punto && apribile(pt))
+                        ? '<span class="percorso-punto apribile"' + attr + ' onclick="riapriPunto(' + Number(punto[0].id) + ', \'' + punto[1] + '\')">' + tit + '</span>'
+                        : '<span class="percorso-punto"' + attr + '>' + tit + '</span>';
+                }).join('<span class="sep">·</span>');
+                const passaggi = sv.map(v => {
+                    const e = et[v.id];
+                    if (e === 'Incipit') return '<span class="percorso-passo">Incipit ' + htmlTitoloPunto(v, 'a') + '</span>';
+                    if (e === 'Explicit') return '<span class="percorso-passo percorso-fine">Explicit</span>';
+                    return '<span class="percorso-passo">' + htmlEtichetta(e) + htmlTitoloPunto(v, 'a') + '</span>';
+                }).join(' ');
+                return '<div class="percorso-sessione"><div class="percorso-corpus">' + corpus + '</div><div class="percorso-passaggi">' + passaggi + '</div><div class="percorso-data">' + escapeHtmlText(giornoDi(sv[0].ora)) + '</div></div>';
+            }).join('');
         }
 
         // un clic riapre il testo nel punto del passaggio
@@ -2949,7 +2998,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             });
             corpo += '<p class="giorno" align="center" style="text-align:center">Fonti del percorso</p>' + fontiDelPercorso(voci).map(fo => {
                 const pt = fo.pt;
-                const f = fonteDi({ fonte: { testoId: pt.testo_id, titolo: pt.titolo, autore: pt.autore, tipo: pt.tipo } });
+                const f = fonteDi({ fonte: { testoId: pt.testo_id, titolo: (pt.titolo || '').trim(), autore: pt.autore, tipo: pt.tipo } });
                 const ricomp = (f.tipo || pt.tipo) === 'ricomposto';
                 const pagine = fo.tratti.length ? '; ' + (fo.tratti.some(t => /^\d/.test(t)) ? 'pagine lette: ' : 'letto in: ') + escapeHtmlText(fo.tratti.join(', ')) : '';
                 return '<p class="bib">' + voceBibliografia(f).html + ' <span class="tipo">' + (ricomp ? 'Ricomposizione' : 'Testo originale') + pagine + '.</span></p>';

@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 401 (28 novembre 2026)
+    TESTOGRAFIA — versione 402 (28 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -636,6 +636,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         .biblioteche-libere a { color: #555; text-decoration: none; border-bottom: 1px solid transparent; white-space: nowrap; }
         .biblioteche-libere a:hover { color: #000; border-bottom-color: #000; }
         .biblioteche-libere span { margin: 0 6px; color: #bbb; }
+        .biblioteche-libere span.biblioteche-titolo { margin: 0 0 2px 0; }
         .biblioteche-libere .biblioteche-titolo { display: block; letter-spacing: 0.18em; text-transform: uppercase; font-size: 0.9em; color: #888; margin-bottom: 2px; }
         .percorso-sessione { padding: 14px 6px 6px 6px; border-bottom: 1px solid rgba(0,0,0,0.06); font-family: var(--font-ui); }
         .percorso-corpus { text-align: center; font-style: italic; font-size: 0.92em; line-height: 1.55; color: #000; }
@@ -855,7 +856,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 401]</div>
+    <div id="version-label">[VERSIONE 402]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -884,7 +885,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             </button>
         </div>
         <div id="top-bar-right">
-            <a class="scaffale-wrapper" href="testi.html" target="_blank" rel="noopener" data-tooltip="DOVE TROVARE I TESTI" aria-label="Dove trovare i testi">
+            <a class="scaffale-wrapper" href="#" onclick="apriModale(); return false;" data-tooltip="TESTI LIBERI" aria-label="Testi liberi">
                 <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" width="30" height="30">
                     <rect x="6" y="12" width="5" height="19" fill="#ffffff" stroke="#000" stroke-width="2.4"/>
                     <rect x="11" y="8" width="5.5" height="23" fill="#ffffff" stroke="#000" stroke-width="2.4"/>
@@ -981,7 +982,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             <div id="modal-status" style="text-align: center; font-family: var(--font-ui); font-size: 0.8em; margin-top: 10px; font-weight: bold;"></div>
             <!-- dove trovare i testi: le biblioteche si aprono in una nuova scheda; il file scaricato si apre con «Scegli file» -->
             <div class="biblioteche-libere">
-                <a href="testi.html" target="_blank" rel="noopener" class="biblioteche-titolo">Testi liberi</a>
+                <span class="biblioteche-titolo">Testi liberi</span>
                 <a href="https://www.liberliber.it/" target="_blank" rel="noopener">Liber Liber</a><span>·</span><a href="https://it.wikisource.org/" target="_blank" rel="noopener">Wikisource</a><span>·</span><a href="https://www.gutenberg.org/" target="_blank" rel="noopener">Gutenberg</a><span>·</span><a href="https://archive.org/details/texts" target="_blank" rel="noopener">Internet Archive</a>
             </div>
         </div>

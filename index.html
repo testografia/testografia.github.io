@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 395 (28 novembre 2026)
+    TESTOGRAFIA — versione 396 (28 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -616,6 +616,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         .lista-archivio-body { max-height: 45vh; overflow-y: auto; overflow-x: hidden; margin-bottom: 15px; padding-right: 5px; text-align: left; }
 
         .archivio-section-title.a-destra { text-align: right; }
+        .archivio-section-title.centrato { text-align: center; }
         .schede-archivio { display: flex; justify-content: center; gap: 22px; }
         .scheda-archivio { cursor: pointer; color: #aaa; padding-bottom: 3px; border-bottom: 1px solid transparent; transition: color 0.15s; }
         .scheda-archivio:hover { color: #000; }
@@ -838,7 +839,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 395]</div>
+    <div id="version-label">[VERSIONE 396]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -2872,7 +2873,7 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             // i giorni dal piu' recente; dentro il giorno, i passaggi nell'ordine in cui sono avvenuti
             const giorni = [];
             voci.forEach(v => { const g = giornoDi(v.ora); if (!giorni.length || giorni[giorni.length - 1].g !== g) giorni.push({ g: g, voci: [] }); giorni[giorni.length - 1].voci.push(v); });
-            container.innerHTML = giorni.reverse().map(gi => '<div class="archivio-section-title">' + escapeHtmlText(gi.g) + '</div>' +
+            container.innerHTML = giorni.reverse().map(gi => '<div class="archivio-section-title centrato">' + escapeHtmlText(gi.g) + '</div>' +
                 gi.voci.map(v => '<div class="percorso-riga"><span class="percorso-ora">' + htmlEtichetta(et[v.id]) + '</span><span class="percorso-testo">' + testoPassaggio(v) + '</span></div>').join('')).join('');
         }
 
@@ -2894,30 +2895,67 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
         }
 
         // Esporta: un documento con i passaggi e i testi letti (si apre con Word); i dati restano anche in forma leggibile da un programma
+        // pagine lette di ogni fonte: da dove si entra a dove si esce, una visita dopo l'altra
+        function luogoDi(pt) { return pt ? (pt.pagina ? String(pt.pagina) : (pt.sezione ? '«' + pt.sezione + '»' : '')) : ''; }
+        function fontiDelPercorso(voci) {
+            const fonti = [], perId = {};
+            const fonte = pt => {
+                const k = String(pt.testo_id);
+                if (!perId[k]) { perId[k] = { pt: pt, tratti: [] }; fonti.push(perId[k]); }
+                return perId[k];
+            };
+            const aggiungi = (pt, inizio, fine) => {
+                const f = fonte(pt);
+                const t = !inizio ? fine : (!fine || inizio === fine ? inizio : inizio + '–' + fine);
+                if (t && f.tratti.indexOf(t) < 0) f.tratti.push(t);
+            };
+            let corrente = null;
+            voci.forEach(v => {
+                if (v.da) {
+                    if (corrente && String(corrente.pt.testo_id) === String(v.da.testo_id)) aggiungi(v.da, corrente.inizio, luogoDi(v.da));
+                    else aggiungi(v.da, '', luogoDi(v.da));
+                    corrente = null;
+                }
+                if (v.a) { fonte(v.a); corrente = { pt: v.a, inizio: luogoDi(v.a) }; }
+            });
+            if (corrente) aggiungi(corrente.pt, corrente.inizio, '');
+            // pagine: un tratto unico gia' compreso in un intervallo non si ripete; sezioni: l'elenco di quelle toccate
+            fonti.forEach(f => {
+                if (f.tratti.some(t => t.charAt(0) === '«')) {
+                    const sez = [];
+                    f.tratti.forEach(t => t.split('–').forEach(x => { if (sez.indexOf(x) < 0) sez.push(x); }));
+                    f.tratti = sez;
+                } else {
+                    const iv = f.tratti.filter(t => t.indexOf('–') > 0).map(t => t.split('–').map(Number));
+                    f.tratti = f.tratti.filter(t => t.indexOf('–') > 0 || !iv.some(r => Number(t) >= Math.min(r[0], r[1]) && Number(t) <= Math.max(r[0], r[1])));
+                }
+            });
+            return fonti;
+        }
+        function cerchiato(e) { const n = Number(e); return /^\d+$/.test(e) && n >= 1 && n <= 20 ? String.fromCharCode(0x245F + n) : e; }
+
+        // Esporta: un documento con i passaggi e le fonti del percorso (si apre con Word); i dati restano anche in forma leggibile da un programma
         async function esportaPercorso() {
             const voci = await leggiPercorso();
             if (!voci.length) return;
-            const testi = [], visti = {};
-            voci.forEach(v => [v.da, v.a].forEach(pt => {
-                if (!pt || visti[pt.testo_id]) return;
-                visti[pt.testo_id] = true;
-                testi.push(pt);
-            }));
             const primo = giornoDi(voci[0].ora), ultimo = giornoDi(voci[voci.length - 1].ora);
             let corpo = '<h1>Percorso di lettura</h1><p class="author">' + escapeHtmlText(primo === ultimo ? primo : primo + ' – ' + ultimo) + '</p>';
             let g = '';
             const et = etichettePercorso(voci);
             voci.forEach(v => {
                 const gv = giornoDi(v.ora);
-                if (gv !== g) { g = gv; corpo += '<p class="h">' + escapeHtmlText(g) + '</p>'; }
-                corpo += '<p class="riga">' + et[v.id] + ' &nbsp; ' + testoPassaggio(v).replace(/<span[^>]*>|<\/span>/g, '') + '</p>';
+                if (gv !== g) { g = gv; corpo += '<p class="giorno" align="center" style="text-align:center">' + escapeHtmlText(g) + '</p>'; }
+                corpo += '<p class="riga">' + cerchiato(et[v.id]) + ' &nbsp; ' + testoPassaggio(v).replace(/<span[^>]*>|<\/span>/g, '') + '</p>';
             });
-            corpo += '<p class="h">Testi</p>' + testi.map(pt => {
+            corpo += '<p class="giorno" align="center" style="text-align:center">Fonti del percorso</p>' + fontiDelPercorso(voci).map(fo => {
+                const pt = fo.pt;
                 const f = fonteDi({ fonte: { testoId: pt.testo_id, titolo: pt.titolo, autore: pt.autore, tipo: pt.tipo } });
-                return '<p class="bib">' + voceBibliografia(f).html + (f.tipo === 'ricomposto' ? ' (ricomposto)' : '') + '</p>';
+                const ricomp = (f.tipo || pt.tipo) === 'ricomposto';
+                const pagine = fo.tratti.length ? '; ' + (fo.tratti.some(t => /^\d/.test(t)) ? 'pagine lette: ' : 'letto in: ') + escapeHtmlText(fo.tratti.join(', ')) : '';
+                return '<p class="bib">' + voceBibliografia(f).html + ' <span class="tipo">' + (ricomp ? 'Ricomposizione' : 'Testo originale') + pagine + '.</span></p>';
             }).join('');
             const dati = JSON.stringify({ testografia: 'percorso', versione: 1, passaggi: voci.map(v => ({ ora: v.ora, da: v.da, a: v.a })) });
-            const stile = '@page WordSection1 { size: 595.3pt 841.9pt; margin: 70.85pt 56.7pt 85.05pt 56.7pt; } div.WordSection1 { page: WordSection1; } body { font-family: Garamond, "EB Garamond", serif; font-size: 12pt; line-height: 1.5; text-align: justify; color: #1a1a1a; } h1 { font-size: 20pt; text-align: center; margin: 0 0 0.3em 0; font-weight: normal; letter-spacing: 0.05em; } .author { font-size: 11pt; text-align: center; font-style: italic; color: #555; margin: 0 0 2em 0; } p { margin: 0; text-align: justify; } p.h { font-weight: bold; margin: 14pt 0 6pt 0; } p.riga { padding-left: 46pt; text-indent: -46pt; margin: 0 0 3pt 0; } p.bib { padding-left: 18pt; text-indent: -18pt; margin: 0 0 6pt 0; }';
+            const stile = '@page WordSection1 { size: 595.3pt 841.9pt; margin: 70.85pt 56.7pt 85.05pt 56.7pt; } div.WordSection1 { page: WordSection1; } body { font-family: Garamond, "EB Garamond", serif; font-size: 12pt; line-height: 1.5; text-align: justify; color: #1a1a1a; } h1 { font-size: 20pt; text-align: center; margin: 0 0 0.3em 0; font-weight: normal; letter-spacing: 0.05em; } .author { font-size: 11pt; text-align: center; font-style: italic; color: #555; margin: 0 0 2em 0; } p { margin: 0; text-align: justify; } p.h { font-weight: bold; margin: 14pt 0 6pt 0; } p.giorno { text-align: center; margin: 16pt 0 8pt 0; font-weight: normal; font-variant: small-caps; letter-spacing: 0.08em; } span.tipo { color: #555; } p.riga { padding-left: 46pt; text-indent: -46pt; margin: 0 0 3pt 0; } p.bib { padding-left: 18pt; text-indent: -18pt; margin: 0 0 6pt 0; }';
             const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Percorso di lettura</title><style>' + stile + '</style></head><body><div class="WordSection1">' + corpo + '</div><!-- testografia-percorso:' + btoa(unescape(encodeURIComponent(dati))) + ' --></body></html>';
             const blob = new Blob(['﻿', html], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);

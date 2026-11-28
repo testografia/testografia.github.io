@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 403 (28 novembre 2026)
+    TESTOGRAFIA — versione 404 (28 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -641,6 +641,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         .biblioteche-libere .biblioteche-titolo { display: block; letter-spacing: 0.18em; text-transform: uppercase; font-size: 0.9em; color: #888; margin-bottom: 2px; }
         .percorso-sessione { padding: 14px 6px 6px 6px; border-bottom: 1px solid rgba(0,0,0,0.06); font-family: var(--font-ui); }
         .percorso-corpus { text-align: center; font-style: italic; font-size: 0.92em; line-height: 1.55; color: #000; }
+        .percorso-grado { font-style: italic; font-size: 0.86em; line-height: 1.5; padding: 2px 0; text-align: left; }
+        .percorso-grado > span { white-space: nowrap; }
+        .percorso-grado .gia { color: #b0b0b0; }
+        .percorso-grado .nuovo { color: #000; }
+        .percorso-grado .piu { font-style: normal; color: #c4c4c4; margin: 0 2px; }
         .percorso-corpus > span { white-space: nowrap; }
         .percorso-corpus .sep { font-style: normal; color: #bbb; margin: 0 3px; }
         .percorso-passaggi { text-align: center; font-size: 0.7em; line-height: 2; color: #888; margin-top: 3px; }
@@ -857,7 +862,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 403]</div>
+    <div id="version-label">[VERSIONE 404]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
@@ -2915,6 +2920,25 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             return sess;
         }
 
+        // l'accumulo di una sessione: a ogni ingresso in un testo, tutto cio' che e' stato letto fin li' e il testo che si aggiunge
+        // (un ritorno non allarga l'insieme: il testo gia' letto torna in evidenza dentro di esso)
+        function gradiAccumulo(sv) {
+            const insieme = [], gradi = [];
+            const aggiungi = (v, lato) => {
+                const pt = v[lato], k = String(pt.testo_id);
+                let i = insieme.findIndex(x => x.k === k);
+                const ritorno = i >= 0;
+                if (!ritorno) { insieme.push({ k: k, pt: pt }); i = insieme.length - 1; }
+                gradi.push({ voce: v, lato: lato, nuovo: i, ritorno: ritorno, parti: insieme.slice() });
+            };
+            sv.forEach(v => {
+                // un testo da cui si esce senza che ne sia registrato l'ingresso e' stato letto comunque: entra nell'insieme
+                if (v.da && !insieme.some(x => x.k === String(v.da.testo_id))) aggiungi(v, 'da');
+                if (v.a) aggiungi(v, 'a');
+            });
+            return gradi;
+        }
+
         async function disegnaPercorso() {
             const container = document.getElementById('lista-archivio-body');
             const voci = await leggiPercorso();
@@ -2924,27 +2948,22 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             // prima il corpus che la sessione ha formato (ogni testo una volta), poi in piccolo i passaggi; la data in fondo a destra
             container.innerHTML = sessioniPercorso(voci).reverse().map(sv => {
                 const fonti = fontiDelPercorso(sv);
-                const corpus = fonti.map(fo => {
+                const tipDi = k => {
+                    const fo = fonti.find(f => String(f.pt.testo_id) === k); if (!fo) return '';
                     const pt = fo.pt;
-                    // il clic riapre il testo dove lo si e' lasciato (l'ultima uscita), altrimenti dove si e' entrati
-                    const uscite = sv.filter(v => v.da && String(v.da.testo_id) === String(pt.testo_id));
-                    const ingresso = sv.find(v => v.a && String(v.a.testo_id) === String(pt.testo_id));
-                    const punto = uscite.length ? [uscite[uscite.length - 1], 'da'] : (ingresso ? [ingresso, 'a'] : null);
-                    const tip = [nomeCognome(pt.autore), (pt.titolo || '').trim(), fo.tratti.length ? (fo.tratti.some(t => /^\d/.test(t)) ? 'pp. ' : '') + fo.tratti.join(', ') : '']
+                    return [nomeCognome(pt.autore), (pt.titolo || '').trim(), fo.tratti.length ? (fo.tratti.some(t => /^\d/.test(t)) ? 'pp. ' : '') + fo.tratti.join(', ') : '']
                         .filter(x => x && String(x).trim()).join(' · ').toUpperCase();
-                    const tit = escapeHtmlText(titoloBreve(pt.titolo));
-                    const attr = ' data-tooltip="' + escapeHtmlText(tip) + '"';
-                    return (punto && apribile(pt))
-                        ? '<span class="percorso-punto apribile"' + attr + ' onclick="riapriPunto(' + Number(punto[0].id) + ', \'' + punto[1] + '\')">' + tit + '</span>'
-                        : '<span class="percorso-punto"' + attr + '>' + tit + '</span>';
-                }).join(' <span class="sep">·</span> ');
-                const passaggi = sv.map(v => {
-                    const e = et[v.id];
-                    if (e === 'Incipit') return '<span class="percorso-passo">Incipit ' + htmlTitoloPunto(v, 'a') + '</span>';
-                    if (e === 'Explicit') return '<span class="percorso-passo percorso-fine">Explicit</span>';
-                    return '<span class="percorso-passo">' + htmlEtichetta(e) + htmlTitoloPunto(v, 'a') + '</span>';
-                }).join(' ');
-                return '<div class="percorso-sessione"><div class="percorso-corpus">' + corpus + '</div><div class="percorso-passaggi">' + passaggi + '</div><div class="percorso-data">' + escapeHtmlText(giornoDi(sv[0].ora)) + '</div></div>';
+                };
+                // ogni grado: quello che e' gia' stato letto, in grigio, e il testo che si aggiunge, in nero
+                const righe = gradiAccumulo(sv).map(gr => '<div class="percorso-grado">' + gr.parti.map((p, i) => {
+                    const tit = escapeHtmlText(titoloBreve(p.pt.titolo));
+                    if (i !== gr.nuovo) return '<span class="gia">' + tit + '</span>';
+                    const attr = ' data-tooltip="' + escapeHtmlText(tipDi(p.k)) + '"';
+                    return apribile(gr.voce[gr.lato])
+                        ? '<span class="percorso-punto apribile nuovo"' + attr + ' onclick="riapriPunto(' + Number(gr.voce.id) + ', \'' + gr.lato + '\')">' + tit + '</span>'
+                        : '<span class="percorso-punto nuovo"' + attr + '>' + tit + '</span>';
+                }).join(' <span class="piu">+</span> ') + '</div>').join('');
+                return '<div class="percorso-sessione">' + righe + '<div class="percorso-data">' + escapeHtmlText(giornoDi(sv[0].ora)) + '</div></div>';
             }).join('');
         }
 
@@ -3012,11 +3031,14 @@ this.workerSrc)).WorkerMessageHandler})())}}class WorkerTransport{downloadInfoCa
             const primo = giornoDi(voci[0].ora), ultimo = giornoDi(voci[voci.length - 1].ora);
             let corpo = '<h1>Percorso di lettura</h1><p class="author">' + escapeHtmlText(primo === ultimo ? primo : primo + ' – ' + ultimo) + '</p>';
             let g = '';
-            const et = etichettePercorso(voci);
-            voci.forEach(v => {
-                const gv = giornoDi(v.ora);
+            sessioniPercorso(voci).forEach(sv => {
+                const gv = giornoDi(sv[0].ora);
                 if (gv !== g) { g = gv; corpo += '<p class="giorno" align="center" style="text-align:center">' + escapeHtmlText(g) + '</p>'; }
-                corpo += '<p class="riga">' + cerchiato(et[v.id]) + ' &nbsp; ' + testoPassaggio(v).replace(/<span[^>]*>|<\/span>/g, '') + '</p>';
+                // l'accumulo: in grigio cio' che e' gia' stato letto, in nero il testo che si aggiunge
+                gradiAccumulo(sv).forEach(gr => {
+                    corpo += '<p class="riga" style="text-align:left">' + gr.parti.map((p, i) => '<i><span style="color:' + (i === gr.nuovo ? '#000000' : '#a0a0a0') + '">' + escapeHtmlText(titoloBreve(p.pt.titolo)) + '</span></i>').join(' <span style="color:#a0a0a0">+</span> ') + '</p>';
+                });
+                corpo += '<p class="riga">&nbsp;</p>';
             });
             corpo += '<p class="giorno" align="center" style="text-align:center">Fonti del percorso</p>' + fontiDelPercorso(voci).map(fo => {
                 const pt = fo.pt;

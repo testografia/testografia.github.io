@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <!--
-    TESTOGRAFIA — versione 394 (28 novembre 2026)
+    TESTOGRAFIA — versione 395 (28 novembre 2026)
     Un unico file HTML: si apre nel browser, senza server e senza account. Tutto resta nel browser (IndexedDB).
     A sinistra il Leggio: archivio dei testi (PDF, Word, EPUB, testo) e scelta dei frammenti.
     A destra il Montaggio: frammenti e interventi si uniscono nel Testo ricomposto; nella vista Risultato si inseriscono i titoli.
@@ -610,6 +610,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         }
 
         .modale-archivio-container { max-width: 500px; }
+        #modale-archivio .modale-archivio-container { box-sizing: border-box; height: min(460px, 86vh); display: flex; flex-direction: column; }   /* stessa altezza per le due schede: passando al Percorso la finestra non salta */
+        #modale-archivio .lista-archivio-body { flex: 1 1 auto; max-height: none; min-height: 0; }
         .archivio-search-bar { width: 100%; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px; font-family: var(--font-ui); font-size: 0.9em; margin-bottom: 15px; box-sizing: border-box; }
         .lista-archivio-body { max-height: 45vh; overflow-y: auto; overflow-x: hidden; margin-bottom: 15px; padding-right: 5px; text-align: left; }
 
@@ -836,7 +838,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 </head>
 <body>
 
-    <div id="version-label">[VERSIONE 394]</div>
+    <div id="version-label">[VERSIONE 395]</div>
     
     <div id="global-tooltip" class="custom-tooltip"></div>
 
